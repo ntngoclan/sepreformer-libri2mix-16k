@@ -1,0 +1,14 @@
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/log/
+**/evaluation/
+.git/
+.venv/
+.venv-audit/
+SourceCode/
+figures/
+*.docx
+data/Libri2Mix.zip
+data/Libri2Mix/
+run_logs/

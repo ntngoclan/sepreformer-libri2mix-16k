@@ -1,0 +1,9 @@
+seed=42
+source_dir=/mnt/l/UIT/Nam4_Ky1/KLTN/SepReformer-main/SepReformer-main/data/scp_ss_8k_local
+train_selected=3000/26038
+valid_selected=500/6546
+sample_rate=8000
+dataset=WSJ0-2Mix diagnostic subset
+train_files=tr_mix.scp,tr_s1.scp,tr_s2.scp
+valid_files=cv_mix.scp,cv_s1.scp,cv_s2.scp
+No test SCP is copied for diagnostic development.

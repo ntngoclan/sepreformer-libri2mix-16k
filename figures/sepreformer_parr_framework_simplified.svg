@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L14 5L0 10Z" fill="#26384d"/></marker>
+    <marker id="arrowSkip" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L14 5L0 10Z" fill="#4b85bb"/></marker>
+    <marker id="arrowAux" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L14 5L0 10Z" fill="#b4587b"/></marker>
+    <style>
+      .title{font:700 58px Arial,sans-serif;fill:#15263c;text-anchor:middle}.sub{font:400 24px Arial,sans-serif;fill:#5c6f84;text-anchor:middle}
+      .panel{fill:#fff;stroke:#8798aa;stroke-width:3}.frame{fill:#fafcff;stroke:#8698aa;stroke-width:3}.head{font:700 32px Arial,sans-serif;fill:#1b2e46}
+      .boxTitle{font:700 27px Arial,sans-serif;fill:#1c3048;text-anchor:middle}.body{font:400 22px Arial,sans-serif;fill:#385069;text-anchor:middle}
+      .small{font:400 19px Arial,sans-serif;fill:#61758a;text-anchor:middle}.dim{font:italic 21px Arial,sans-serif;fill:#405a75;text-anchor:middle}
+      .input{fill:#fbeaf0;stroke:#ae607d;stroke-width:3}.front{fill:#fff1dc;stroke:#c58a35;stroke-width:3}.enc{fill:#e8f3fb;stroke:#4f86b4;stroke-width:3}
+      .split{fill:#f1eafb;stroke:#7c5aac;stroke-width:3}.dec{fill:#e9f6ed;stroke:#4f9168;stroke-width:3}.parr{fill:#fff0c9;stroke:#ca8a1f;stroke-width:3}
+      .neutral{fill:#f3f6f9;stroke:#74879b;stroke-width:3}.main{fill:none;stroke:#26384d;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;marker-end:url(#arrow)}
+      .plain{fill:none;stroke:#26384d;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter}.skip{fill:none;stroke:#4b85bb;stroke-width:4;stroke-dasharray:14 10;marker-end:url(#arrowSkip)}
+      .aux{fill:none;stroke:#b4587b;stroke-width:4;stroke-dasharray:8 9;marker-end:url(#arrowAux)}
+    </style>
+  </defs>
+  <rect width="3840" height="2160" fill="#fff"/>
+  <text x="1920" y="78" class="title">SepReformer-PARR: Simplified Framework</text>
+  <text x="1920" y="122" class="sub">Major components only · two-speaker separation · Libri2Mix 16 kHz</text>
+
+  <rect x="55" y="160" width="3730" height="1200" rx="28" class="panel"/>
+  <text x="95" y="215" class="head">A. End-to-end separation pipeline</text>
+
+  <rect x="105" y="430" width="330" height="280" rx="22" class="input"/>
+  <text x="270" y="485" class="boxTitle">Mixture waveform</text>
+  <polyline points="145,565 162,525 180,605 198,510 216,590 234,535 252,610 270,500 288,585 306,530 324,600 342,515 360,585 378,535 396,595" fill="none" stroke="#3d82bf" stroke-width="6"/>
+  <text x="270" y="650" class="dim">x: [B × N]</text>
+
+  <rect x="520" y="430" width="365" height="280" rx="22" class="front"/>
+  <text x="702" y="490" class="boxTitle">Waveform Front-end</text>
+  <text x="702" y="548" class="body">Audio Encoder</text><text x="702" y="582" class="body">+ Feature Projector</text>
+  <text x="702" y="642" class="dim">[B × 128 × Tₚ]</text><text x="702" y="678" class="small">Conv1D stride 8 · temporal padding</text>
+
+  <rect x="985" y="285" width="1800" height="720" rx="28" class="frame"/>
+  <text x="1885" y="342" class="boxTitle">Multi-scale SepReformer Separator</text>
+  <text x="1885" y="382" class="small">contract → split speakers → reconstruct and refine</text>
+
+  <rect x="1045" y="465" width="455" height="360" rx="22" class="enc"/>
+  <text x="1272" y="525" class="boxTitle">Separation Encoder ×4</text>
+  <text x="1272" y="585" class="body">Global + Local Transformer</text>
+  <text x="1272" y="620" class="body">followed by downsampling</text>
+  <text x="1272" y="680" class="dim">Tₚ → Tₚ/16</text>
+  <text x="1272" y="728" class="small">four skip features + bottleneck</text>
+  <text x="1272" y="772" class="small">no PARR at bottleneck</text>
+
+  <rect x="1620" y="485" width="390" height="320" rx="22" class="split"/>
+  <text x="1815" y="545" class="boxTitle">Speaker Split</text>
+  <text x="1815" y="610" class="body">Shared split module</text><text x="1815" y="645" class="body">at all five scales</text>
+  <text x="1815" y="708" class="dim">[BJ × 128 × Tᵣ]</text><text x="1815" y="755" class="small">J = 2; speakers folded into batch</text>
+
+  <rect x="2130" y="465" width="595" height="360" rx="22" class="dec"/>
+  <text x="2427" y="525" class="boxTitle">Reconstruction Decoder ×4</text>
+  <text x="2427" y="580" class="body">Upsample + skip fusion</text>
+  <text x="2427" y="615" class="body">Global + Local + Cross-Speaker</text>
+  <rect x="2240" y="675" width="375" height="82" rx="13" class="parr"/>
+  <text x="2427" y="710" class="boxTitle">PARR after every stage</text>
+  <text x="2427" y="740" class="small">shared core · stage-specific Nᵣ, γᵣ</text>
+  <text x="2427" y="795" class="dim">Tₚ/16 → Tₚ</text>
+
+  <rect x="2900" y="365" width="370" height="210" rx="22" class="input"/>
+  <text x="3085" y="425" class="boxTitle">Output Layer</text><text x="3085" y="480" class="body">speaker-wise encoded</text><text x="3085" y="515" class="body">source streams</text>
+  <rect x="2900" y="635" width="370" height="210" rx="22" class="input"/>
+  <text x="3085" y="695" class="boxTitle">Audio Decoder ×J</text><text x="3085" y="750" class="body">ConvTranspose1D</text><text x="3085" y="790" class="dim">J × [B × N]</text>
+  <rect x="3375" y="430" width="320" height="280" rx="22" class="input"/>
+  <text x="3535" y="490" class="boxTitle">Separated speech</text>
+  <polyline points="3420,580 3437,535 3454,610 3471,525 3488,595 3505,545 3522,615" fill="none" stroke="#d35555" stroke-width="6"/>
+  <polyline points="3548,580 3565,530 3582,600 3599,545 3616,615 3633,525 3650,590" fill="none" stroke="#377fc0" stroke-width="6"/>
+  <text x="3535" y="650" class="dim">ŝ₁, ŝ₂</text>
+
+  <path d="M435 570H520" class="main"/><path d="M885 570H985V645H1045" class="main"/>
+  <path d="M1500 645H1620" class="main"/><path d="M2010 645H2130" class="main"/>
+  <path d="M2725 645H2815V470H2900" class="main"/><path d="M3085 575V635" class="main"/>
+  <path d="M3270 740H3325V570H3375" class="main"/>
+  <path d="M1500 500H2070V500H2130" class="skip"/><text x="1815" y="455" class="small">multi-scale skip connections</text>
+
+  <rect x="1110" y="1080" width="1590" height="170" rx="20" class="neutral"/>
+  <text x="1905" y="1135" class="boxTitle">Training-only multi-scale auxiliary supervision</text>
+  <text x="1905" y="1182" class="body">{speaker-split bottleneck, H′₀, H′₁, H′₂} → auxiliary waveform heads → STFT-magnitude PIT</text>
+  <text x="1905" y="1222" class="small">Main H′₃ output uses time-domain PIT SI-SNR</text>
+  <path d="M2427 825V1035H1905V1080" class="aux"/>
+
+  <rect x="55" y="1415" width="3730" height="685" rx="28" class="panel"/>
+  <text x="95" y="1470" class="head">B. PARR at decoder stage r</text>
+  <text x="95" y="1510" class="small" style="text-anchor:start">A lightweight correction follows reconstruction at each temporal scale; the detailed shared core is summarized without expanding every convolution.</text>
+
+  <rect x="160" y="1705" width="330" height="180" rx="20" class="dec"/><text x="325" y="1765" class="boxTitle">Stage feature Hᵣ</text><text x="325" y="1825" class="dim">[BJ × 128 × Tᵣ]</text>
+  <rect x="690" y="1635" width="820" height="320" rx="22" class="parr"/>
+  <text x="1100" y="1700" class="boxTitle">Shared PARR temporal core</text>
+  <text x="1100" y="1750" class="body">Nᵣ → bottleneck → Conv-U / dense dilated temporal memory</text>
+  <text x="1100" y="1790" class="body">pure correction Rᵣ and channel-temporal controller Aᵣ</text>
+  <text x="1100" y="1850" class="dim">Aᵣ, Rᵣ: [BJ × 64 × Tᵣ]</text>
+  <text x="1100" y="1900" class="body">Δᵣ = W(Aᵣ ⊙ Rᵣ)</text>
+  <rect x="1720" y="1705" width="370" height="180" rx="20" class="front"/><text x="1905" y="1765" class="boxTitle">Stage scale</text><text x="1905" y="1825" class="body">γᵣ Δᵣ · γᵣ init 0</text>
+  <circle cx="2300" cy="1795" r="48" fill="#fff7df" stroke="#ca8a1f" stroke-width="3"/><text x="2300" y="1808" class="boxTitle">+</text>
+  <rect x="2530" y="1705" width="405" height="180" rx="20" class="dec"/><text x="2732" y="1765" class="boxTitle">Refined H′ᵣ</text><text x="2732" y="1825" class="dim">Hᵣ + γᵣΔᵣ</text>
+  <rect x="3145" y="1650" width="500" height="290" rx="20" class="neutral"/>
+  <text x="3395" y="1710" class="boxTitle">Design invariants</text>
+  <text x="3395" y="1765" class="body">same temporal core at r=0…3</text><text x="3395" y="1805" class="body">stage-specific norm and scale</text>
+  <text x="3395" y="1845" class="body">exact identity at initialization</text><text x="3395" y="1885" class="body">no bottleneck PARR</text>
+
+  <path d="M490 1795H690" class="main"/><path d="M1510 1795H1720" class="main"/><path d="M2090 1795H2252" class="main"/><path d="M2348 1795H2530" class="main"/>
+  <path d="M325 1885V2025H2300V1843" class="plain"/>
+  <text x="1920" y="2055" class="small">B: batch · J: speakers (=2) · N: waveform samples · Tᵣ: decoder-stage frames · main flow: solid · skip: blue dashed · auxiliary: magenta dashed</text>
+</svg>

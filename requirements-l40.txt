@@ -1,0 +1,16 @@
+# Runtime dependencies for NVIDIA L40. Install torch/torchvision/torchaudio cu121 first;
+# scripts/setup_l40.sh and Dockerfile.l40 do this explicitly.
+librosa==0.10.2.post1
+loguru==0.7.2
+mir-eval==0.7
+numpy==1.26.4
+pesq==0.0.4
+ptflops==0.7.4
+pystoi==0.4.1
+PyYAML==6.0.1
+scipy==1.14.1
+soundfile==0.12.1
+tensorboard==2.18.0
+thop==0.1.1.post2209072238
+torchinfo==1.8.0
+tqdm==4.66.5

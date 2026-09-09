@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1280" viewBox="0 0 1800 1280">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#273142"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2463a8"/>
+    </marker>
+    <filter id="paper" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="8" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="gray"/>
+      <feComponentTransfer in="gray" result="faint">
+        <feFuncA type="table" tableValues="0 0.035"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="faint" mode="multiply"/>
+    </filter>
+    <style>
+      .title { font: 700 30px 'Segoe Print','Comic Sans MS',sans-serif; fill:#182230; }
+      .subtitle { font: 700 22px 'Segoe Print','Comic Sans MS',sans-serif; fill:#182230; }
+      .label { font: 600 16px 'Segoe Print','Comic Sans MS',sans-serif; fill:#182230; text-anchor:middle; }
+      .small { font: 500 14px 'Segoe Print','Comic Sans MS',sans-serif; fill:#273142; text-anchor:middle; }
+      .tiny { font: 500 12px 'Segoe Print','Comic Sans MS',sans-serif; fill:#273142; text-anchor:middle; }
+      .note { font: 500 15px 'Segoe Print','Comic Sans MS',sans-serif; fill:#334155; }
+      .box { stroke:#273142; stroke-width:2.2; rx:13; ry:13; }
+      .flow { fill:none; stroke:#273142; stroke-width:2.4; marker-end:url(#arrow); stroke-linecap:round; stroke-linejoin:round; }
+      .blueflow { fill:none; stroke:#2463a8; stroke-width:2.4; marker-end:url(#arrow-blue); stroke-linecap:round; stroke-linejoin:round; }
+      .skip { fill:none; stroke:#8c5a15; stroke-width:2; stroke-dasharray:8 7; marker-end:url(#arrow); }
+      .shared { fill:none; stroke:#7c3aed; stroke-width:2.2; stroke-dasharray:10 7; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1800" height="1280" fill="#fffdf6"/>
+  <g filter="url(#paper)">
+    <text x="900" y="45" class="title" text-anchor="middle">SEPREFORMER–PARR (Libri2Mix 16 kHz) — kiến trúc đúng theo code</text>
+
+    <!-- ===== Panel A: complete model ===== -->
+    <rect x="25" y="68" width="1750" height="596" rx="20" fill="#fffaf0" stroke="#8b7e6a" stroke-width="2"/>
+    <text x="55" y="104" class="subtitle">A. Luồng toàn mô hình</text>
+
+    <rect class="box" x="55" y="155" width="145" height="82" fill="#f7d6dc"/>
+    <text class="label" x="127" y="186">Mixture</text>
+    <text class="small" x="127" y="211">[B, T] · 16 kHz</text>
+
+    <rect class="box" x="240" y="143" width="170" height="106" fill="#f9dfb5"/>
+    <text class="label" x="325" y="174">Audio Encoder</text>
+    <text class="small" x="325" y="198">Conv1D 1→256</text>
+    <text class="small" x="325" y="220">K=32, S=8 + GELU</text>
+
+    <rect class="box" x="450" y="143" width="170" height="106" fill="#f9dfb5"/>
+    <text class="label" x="535" y="174">Feature Projector</text>
+    <text class="small" x="535" y="198">GroupNorm + 1×1</text>
+    <text class="small" x="535" y="220">256→128 channels</text>
+
+    <path class="flow" d="M200 196 C214 194 224 197 240 196"/>
+    <path class="flow" d="M410 196 C424 193 437 198 450 196"/>
+
+    <!-- encoder staircase -->
+    <rect class="box" x="670" y="125" width="155" height="90" fill="#cfe8f7"/>
+    <text class="label" x="748" y="153">Encoder E₀</text>
+    <text class="small" x="748" y="177">G→L→G→L</text>
+    <text class="small" x="748" y="197">↓2 · skip S₀</text>
+
+    <rect class="box" x="855" y="175" width="155" height="90" fill="#cfe8f7"/>
+    <text class="label" x="933" y="203">Encoder E₁</text>
+    <text class="small" x="933" y="227">G→L→G→L</text>
+    <text class="small" x="933" y="247">↓2 · skip S₁</text>
+
+    <rect class="box" x="1040" y="225" width="155" height="90" fill="#cfe8f7"/>
+    <text class="label" x="1118" y="253">Encoder E₂</text>
+    <text class="small" x="1118" y="277">G→L→G→L</text>
+    <text class="small" x="1118" y="297">↓2 · skip S₂</text>
+
+    <rect class="box" x="1225" y="275" width="155" height="90" fill="#cfe8f7"/>
+    <text class="label" x="1303" y="303">Encoder E₃</text>
+    <text class="small" x="1303" y="327">G→L→G→L</text>
+    <text class="small" x="1303" y="347">↓2 · skip S₃</text>
+
+    <path class="flow" d="M620 196 C637 173 650 168 670 168"/>
+    <path class="flow" d="M825 170 C839 182 843 205 855 218"/>
+    <path class="flow" d="M1010 220 C1024 232 1028 255 1040 268"/>
+    <path class="flow" d="M1195 270 C1209 282 1213 305 1225 318"/>
+
+    <rect class="box" x="1420" y="322" width="285" height="92" fill="#e1d5f5"/>
+    <text class="label" x="1562" y="350">Bottleneck + Speaker Split</text>
+    <text class="small" x="1562" y="375">G→L→G→L · không có PARR</text>
+    <text class="small" x="1562" y="397">[B×2, 128, L/16]</text>
+    <path class="flow" d="M1380 320 C1396 324 1404 350 1420 362"/>
+
+    <!-- decoder row, right to left -->
+    <rect class="box" x="1375" y="470" width="290" height="120" fill="#d8efd9"/>
+    <text class="label" x="1520" y="496">Decoder D₀ · L/8</text>
+    <text class="small" x="1520" y="519">↑2 + S₃ → concat → 1×1</text>
+    <text class="small" x="1520" y="542">(G→L→Cross-Spk) ×3</text>
+    <rect x="1434" y="554" width="172" height="27" rx="10" fill="#ffe08a" stroke="#273142" stroke-width="1.8"/>
+    <text class="small" x="1520" y="573">PARR₀ → H′₀</text>
+
+    <rect class="box" x="1035" y="470" width="290" height="120" fill="#d8efd9"/>
+    <text class="label" x="1180" y="496">Decoder D₁ · L/4</text>
+    <text class="small" x="1180" y="519">↑2 + S₂ → concat → 1×1</text>
+    <text class="small" x="1180" y="542">(G→L→Cross-Spk) ×3</text>
+    <rect x="1094" y="554" width="172" height="27" rx="10" fill="#ffe08a" stroke="#273142" stroke-width="1.8"/>
+    <text class="small" x="1180" y="573">PARR₁ → H′₁</text>
+
+    <rect class="box" x="695" y="470" width="290" height="120" fill="#d8efd9"/>
+    <text class="label" x="840" y="496">Decoder D₂ · L/2</text>
+    <text class="small" x="840" y="519">↑2 + S₁ → concat → 1×1</text>
+    <text class="small" x="840" y="542">(G→L→Cross-Spk) ×3</text>
+    <rect x="754" y="554" width="172" height="27" rx="10" fill="#ffe08a" stroke="#273142" stroke-width="1.8"/>
+    <text class="small" x="840" y="573">PARR₂ → H′₂</text>
+
+    <rect class="box" x="355" y="470" width="290" height="120" fill="#d8efd9"/>
+    <text class="label" x="500" y="496">Decoder D₃ · L</text>
+    <text class="small" x="500" y="519">↑2 + S₀ → concat → 1×1</text>
+    <text class="small" x="500" y="542">(G→L→Cross-Spk) ×3</text>
+    <rect x="414" y="554" width="172" height="27" rx="10" fill="#ffe08a" stroke="#273142" stroke-width="1.8"/>
+    <text class="small" x="500" y="573">PARR₃ → H′₃</text>
+
+    <path class="flow" d="M1562 414 C1570 430 1560 451 1540 470"/>
+    <path class="flow" d="M1375 530 C1358 527 1343 533 1325 530"/>
+    <path class="flow" d="M1035 530 C1018 527 1003 533 985 530"/>
+    <path class="flow" d="M695 530 C678 527 663 533 645 530"/>
+
+    <!-- skip paths -->
+    <path class="skip" d="M748 125 C760 80 1640 78 1570 470"/>
+    <path class="skip" d="M933 175 C960 105 1310 100 1215 470"/>
+    <path class="skip" d="M1118 225 C1140 175 1025 205 875 470"/>
+    <path class="skip" d="M1303 275 C1280 350 740 360 540 470"/>
+
+    <rect class="box" x="75" y="476" width="220" height="108" fill="#f7d6dc"/>
+    <text class="label" x="185" y="504">Output Layer</text>
+    <text class="small" x="185" y="528">128→256 + Audio Decoder</text>
+    <text class="small" x="185" y="550">ConvTranspose1D</text>
+    <text class="small" x="185" y="572">ŝ₁(t), ŝ₂(t)</text>
+    <path class="flow" d="M355 530 C334 527 317 533 295 530"/>
+
+    <!-- auxiliary heads exact current code -->
+    <text x="55" y="625" class="note">Auxiliary taps hiện tại: Aux₀ = bottleneck; Aux₁ = H′₀; Aux₂ = H′₁; Aux₃ = H′₂. Main output = H′₃.</text>
+    <text x="1210" y="625" class="note">L = số frame sau Feature Projector</text>
+    <text x="900" y="649" class="tiny">Mỗi skip Sᵣ đi qua cùng Speaker Split trước khi concat với decoder feature.</text>
+
+    <!-- ===== Panel B: PARR detail ===== -->
+    <rect x="25" y="686" width="1750" height="554" rx="20" fill="#fbf8ff" stroke="#8b7e6a" stroke-width="2"/>
+    <text x="55" y="724" class="subtitle">B. Một lần gọi PARR tại decoder stage r (r = 0,1,2,3)</text>
+
+    <rect class="box" x="65" y="815" width="150" height="70" fill="#d8efd9"/>
+    <text class="label" x="140" y="843">Hᵣ</text>
+    <text class="small" x="140" y="867">[B×S,128,Tᵣ]</text>
+
+    <rect class="box" x="270" y="812" width="155" height="76" fill="#f4d5fa"/>
+    <text class="label" x="347" y="839">Nᵣ</text>
+    <text class="small" x="347" y="864">stage-specific LN</text>
+    <path class="flow" d="M215 850 C233 847 250 854 270 850"/>
+
+    <rect class="box" x="480" y="800" width="185" height="100" fill="#d8e7fa"/>
+    <text class="label" x="572" y="829">Bottleneck Bθ</text>
+    <text class="small" x="572" y="854">1×1 Conv 128→64</text>
+    <text class="small" x="572" y="878">+ PReLU + Channel LN = Zᵣ</text>
+    <path class="flow" d="M425 850 C444 846 460 854 480 850"/>
+
+    <rect class="box" x="745" y="758" width="155" height="74" fill="#cfe8f7"/>
+    <text class="label" x="822" y="786">Conv-U</text>
+    <text class="small" x="822" y="810">Uᵣ = ConvU(Zᵣ)</text>
+    <rect class="box" x="745" y="905" width="155" height="74" fill="#cfe8f7"/>
+    <text class="label" x="822" y="933">Conv-U</text>
+    <text class="small" x="822" y="957">Vᵣ = ConvU(Zᵣ)</text>
+    <path class="flow" d="M665 850 C700 844 700 795 745 795"/>
+    <path class="flow" d="M665 850 C700 856 700 942 745 942"/>
+
+    <rect class="box" x="960" y="892" width="220" height="100" fill="#cfe8f7"/>
+    <text class="label" x="1070" y="920">Dense Dilated FSMN</text>
+    <text class="small" x="1070" y="946">d = [1, 2, 4, 8]</text>
+    <text class="small" x="1070" y="970">Mᵣ = FSMN(Vᵣ)</text>
+    <path class="flow" d="M900 942 C920 939 940 945 960 942"/>
+
+    <circle cx="1235" cy="850" r="27" fill="#ffe08a" stroke="#273142" stroke-width="2.2"/>
+    <text class="label" x="1235" y="857">⊙</text>
+    <path class="flow" d="M900 795 C1045 790 1140 814 1211 842"/>
+    <path class="flow" d="M1180 942 C1210 930 1226 900 1232 878"/>
+
+    <rect class="box" x="1305" y="812" width="165" height="76" fill="#f4d5fa"/>
+    <text class="label" x="1387" y="840">Channel LN</text>
+    <text class="small" x="1387" y="865">Rᵣ = Norm(Uᵣ⊙Mᵣ)</text>
+    <path class="flow" d="M1262 850 C1277 847 1289 853 1305 850"/>
+
+    <!-- controller branch -->
+    <rect class="box" x="940" y="1058" width="275" height="105" fill="#fde4a7"/>
+    <text class="label" x="1077" y="1087">Channel-temporal controller Gφ</text>
+    <text class="small" x="1077" y="1112">Concat [Zᵣ,Rᵣ] → Conv 128→64</text>
+    <text class="small" x="1077" y="1137">Aᵣ=σ(·) ∈ [B×S,64,Tᵣ]</text>
+    <path class="blueflow" d="M630 900 C675 1050 800 1105 940 1108"/>
+    <path class="blueflow" d="M1387 888 C1385 1035 1280 1105 1215 1108"/>
+
+    <circle cx="1510" cy="1025" r="27" fill="#ffe08a" stroke="#273142" stroke-width="2.2"/>
+    <text class="label" x="1510" y="1032">⊙</text>
+    <path class="blueflow" d="M1215 1110 C1350 1110 1430 1075 1488 1042"/>
+    <path class="flow" d="M1470 850 C1500 860 1512 940 1510 998"/>
+
+    <rect class="box" x="1570" y="977" width="155" height="96" fill="#d8e7fa"/>
+    <text class="label" x="1647" y="1006">Wθ</text>
+    <text class="small" x="1647" y="1030">1×1 Conv 64→128</text>
+    <text class="small" x="1647" y="1053">Δᵣ</text>
+    <path class="flow" d="M1537 1025 C1548 1022 1558 1028 1570 1025"/>
+
+    <!-- outer residual and gamma -->
+    <circle cx="1647" cy="850" r="29" fill="#f7d6dc" stroke="#273142" stroke-width="2.2"/>
+    <text class="label" x="1647" y="857">+</text>
+    <path class="flow" d="M1647 977 C1645 943 1649 916 1647 879"/>
+    <text class="small" x="1698" y="927">× γᵣ</text>
+    <text class="tiny" x="1698" y="947">γᵣ,₀ = 0</text>
+    <path class="flow" d="M140 815 C140 750 1580 742 1625 829"/>
+    <path class="flow" d="M1676 850 C1700 847 1718 853 1740 850"/>
+    <text class="label" x="1740" y="825">H′ᵣ</text>
+
+    <path d="M455 748 L1490 748 L1490 945 L1750 945 L1750 1095 L1490 1095 L1490 1175 L455 1175 Z" class="shared"/>
+    <text x="910" y="1168" class="tiny" fill="#6d28d9">Khung tím: θ,φ dùng chung cho cả 4 stage và mọi speaker branch</text>
+    <text x="65" y="1195" class="note">Stage-specific: Nᵣ và γᵣ. Shared: Bottleneck, 2 Conv-U, Dense Dilated FSMN, temporal controller và Wθ.</text>
+    <text x="65" y="1222" class="note">Pure correction: không có phép cộng Zᵣ + Rᵣ bên trong core; phép residual duy nhất là H′ᵣ = Hᵣ + γᵣΔᵣ.</text>
+  </g>
+</svg>

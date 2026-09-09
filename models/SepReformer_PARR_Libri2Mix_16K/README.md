@@ -1,0 +1,89 @@
+# SepReformer-PARR for Libri2Mix 16 kHz
+
+This package is the Libri2Mix 16 kHz SepReformer baseline with one architectural
+change: Progressive Adaptive Residual Refinement (PARR) is applied after each of
+the four reconstruction decoder stages. No PARR block is applied at the
+bottleneck.
+
+For decoder stage `r`, the implementation is:
+
+```text
+N_r       = ChannelLayerNorm_r(H_r)
+Z_r       = ChannelLayerNorm(PReLU(Conv1x1(N_r)))
+U_r       = ConvU_theta(Z_r)
+V_r       = ConvU_theta(Z_r)
+M_r       = DenseDilatedFSMN_theta(V_r)
+R_r       = ChannelLayerNorm(U_r * M_r)
+A_r       = sigmoid(Conv1x1_theta(concat(Z_r, R_r)))
+Delta_r   = Conv1x1_theta(A_r * R_r)
+H'_r      = H_r + gamma_r * Delta_r
+```
+
+`A_r` has shape `[B*J, 64, T_r]`, so gating is channel-temporal. The temporal
+core parameters are shared by all stages and speaker branches. Stage
+normalizations and `gamma_r` are stage-specific. Every `gamma_r` is initialized
+to zero, making PARR an exact identity mapping at initialization. The controller
+weights and bias are also zero-initialized, giving a neutral initial gate of
+`0.5`.
+
+The unchanged SepReformer training objectives are used: time-domain PIT SI-SNR
+for the final output and STFT-magnitude PIT supervision for four auxiliary
+outputs. PARR does not add cross-scale evidence, stage-consistent PIT, mixture
+consistency, MR-STFT, or early-exit logic.
+
+## Data and training
+
+Expected archive layout:
+
+```text
+data/Libri2Mix.zip
+└── Libri2Mix/wav16k/min/{train-100,dev,test}/{mix_clean,s1,s2}
+```
+
+The loader can read the archive directly, but extracting it to
+`data/Libri2Mix/wav16k/min` is faster.
+
+```bash
+python run.py --model SepReformer_PARR_Libri2Mix_16K --engine-mode train
+```
+
+Put model-initialization checkpoints in `log/pretrain_weights`. Their compatible
+model tensors are loaded, but optimizer state and epoch are intentionally not
+restored. Checkpoints in `log/scratch_weights` resume the same architecture with
+model, optimizer, scheduler, and epoch state; all newly saved checkpoints go
+there. Legacy checkpoints without scheduler state remain loadable and emit a
+warning.
+
+Do not use the author's WSJ0-2Mix 8 kHz checkpoint as the reported Libri2Mix
+16 kHz baseline. Its waveform front-end has different dimensions, so it can only
+serve as a documented partial-transfer initialization and is not an equivalent
+training condition.
+
+## Verification
+
+```bash
+python -m models.SepReformer_PARR_Libri2Mix_16K.smoke_test_parr
+```
+
+The smoke test checks dimensions, neutral controller initialization, exact
+identity at `gamma=0`, and gradient flow after enabling a residual scale. It
+requires the dependencies in the repository `requirements.txt`, including
+PyTorch.
+
+Run the complete held-out evaluation after training:
+
+```bash
+python run.py --model SepReformer_PARR_Libri2Mix_16K --engine-mode test
+```
+
+Results are written under `evaluation/checkpoint_epoch_XXXX/` as an
+utterance-level CSV and a JSON summary containing bootstrap 95% confidence
+intervals. The suite includes SI-SNR/i, BSS-Eval SDR/SIR/SAR and improvements,
+scale-dependent SNR/i, mixture-consistency error, WB-PESQ, STOI, ESTOI, latency,
+RTF, peak VRAM, parameter count and MAC estimates.
+All quality metrics reuse the speaker assignment selected by SI-SNR.
+
+For a valid baseline comparison, use the matching
+`SepReformer_Base_Libri2Mix_16K` package with the same data split, crop length,
+batch size, optimizer, scheduler, maximum epoch, seed policy, and evaluation
+code. Report multiple seeds when resources permit.

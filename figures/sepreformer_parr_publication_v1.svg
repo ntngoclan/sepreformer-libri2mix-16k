@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <defs>
+    <marker id="arrow-main" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,5 L0,10 Z" fill="#26364a"/>
+    </marker>
+    <marker id="arrow-skip" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,5 L0,10 Z" fill="#3178b9"/>
+    </marker>
+    <marker id="arrow-aux" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,5 L0,10 Z" fill="#b64d7d"/>
+    </marker>
+    <marker id="arrow-control" markerWidth="14" markerHeight="10" refX="13" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,5 L0,10 Z" fill="#7957b8"/>
+    </marker>
+    <style>
+      .title { font: 700 48px Arial, sans-serif; fill:#142033; }
+      .panel-title { font: 700 30px Arial, sans-serif; fill:#142033; }
+      .group-title { font: 700 25px Arial, sans-serif; fill:#213047; text-anchor:middle; }
+      .box-title { font: 700 22px Arial, sans-serif; fill:#18263a; text-anchor:middle; }
+      .body { font: 400 19px Arial, sans-serif; fill:#26364a; text-anchor:middle; }
+      .body-left { font: 400 19px Arial, sans-serif; fill:#26364a; }
+      .dim { font: italic 18px Arial, sans-serif; fill:#30445f; text-anchor:middle; }
+      .small { font: 400 16px Arial, sans-serif; fill:#34465c; text-anchor:middle; }
+      .tiny { font: 400 14px Arial, sans-serif; fill:#43556b; text-anchor:middle; }
+      .formula { font: italic 20px Georgia, serif; fill:#19283b; text-anchor:middle; }
+      .panel { fill:#ffffff; stroke:#8a98aa; stroke-width:2.5; rx:22; }
+      .group { stroke:#718096; stroke-width:2.4; rx:18; }
+      .box { stroke:#31445b; stroke-width:2.2; rx:12; }
+      .stage { fill:#edf7f0; stroke:#4b8f65; stroke-width:2.3; rx:12; }
+      .enc { fill:#eaf3fb; stroke:#4f83ad; stroke-width:2.3; rx:12; }
+      .split { fill:#f2ecfb; stroke:#7655a5; stroke-width:2.3; rx:12; }
+      .parr { fill:#fff1cf; stroke:#c58a24; stroke-width:2.3; rx:12; }
+      .output { fill:#fbe9ee; stroke:#a95f78; stroke-width:2.3; rx:12; }
+      .main { fill:none; stroke:#26364a; stroke-width:3; marker-end:url(#arrow-main); stroke-linecap:square; stroke-linejoin:miter; }
+      .main-noarrow { fill:none; stroke:#26364a; stroke-width:3; stroke-linecap:square; stroke-linejoin:miter; }
+      .skipline { fill:none; stroke:#3178b9; stroke-width:2.8; stroke-dasharray:11 7; marker-end:url(#arrow-skip); stroke-linecap:square; stroke-linejoin:miter; }
+      .auxline { fill:none; stroke:#b64d7d; stroke-width:2.8; stroke-dasharray:5 6; marker-end:url(#arrow-aux); stroke-linecap:square; stroke-linejoin:miter; }
+      .control { fill:none; stroke:#7957b8; stroke-width:2.6; stroke-dasharray:10 6; marker-end:url(#arrow-control); stroke-linecap:square; stroke-linejoin:miter; }
+      .shared-frame { fill:none; stroke:#8b63c7; stroke-width:2.8; stroke-dasharray:13 8; }
+    </style>
+  </defs>
+
+  <rect width="3840" height="2160" fill="#ffffff"/>
+  <text x="1920" y="68" class="title" text-anchor="middle">SepReformer–PARR: Progressive Adaptive Residual Refinement</text>
+  <text x="1920" y="105" class="body" text-anchor="middle">Code-accurate architecture · Libri2Mix 16 kHz · J = 2 speakers · R = 4 reconstruction stages</text>
+
+  <!-- ==================== PANEL A ==================== -->
+  <rect class="panel" x="35" y="130" width="3770" height="1215"/>
+  <text x="70" y="175" class="panel-title">A. End-to-end architecture and multi-scale separator</text>
+
+  <!-- Front-end group -->
+  <rect class="group" x="70" y="210" width="430" height="1060" fill="#fbfcfe"/>
+  <text x="285" y="248" class="group-title">Waveform front-end</text>
+
+  <rect class="output box" x="125" y="292" width="320" height="92"/>
+  <text x="285" y="326" class="box-title">Mixture waveform x</text>
+  <text x="285" y="360" class="dim">(B × N) → (B × 1 × N)</text>
+
+  <rect class="box" x="125" y="440" width="320" height="132" fill="#fff0d9"/>
+  <text x="285" y="472" class="box-title">Audio Encoder</text>
+  <text x="285" y="503" class="body">Conv1D 1 → F₀=256</text>
+  <text x="285" y="531" class="body">kernel 32 · stride 8 · GELU</text>
+  <text x="285" y="558" class="dim">(B × 256 × T₀)</text>
+
+  <rect class="box" x="125" y="638" width="320" height="132" fill="#fff0d9"/>
+  <text x="285" y="670" class="box-title">Feature Projector</text>
+  <text x="285" y="701" class="body">GroupNorm + PWConv 1×1</text>
+  <text x="285" y="729" class="body">256 → F=128</text>
+  <text x="285" y="756" class="dim">(B × 128 × T₀)</text>
+
+  <rect class="box" x="125" y="836" width="320" height="122" fill="#f3f5f8"/>
+  <text x="285" y="871" class="box-title">Pad temporal axis</text>
+  <text x="285" y="902" class="body">Tₚ divisible by 2ᴿ = 16</text>
+  <text x="285" y="935" class="dim">(B × 128 × Tₚ)</text>
+
+  <path class="main" d="M285 384 V440"/>
+  <path class="main" d="M285 572 V638"/>
+  <path class="main" d="M285 770 V836"/>
+  <text x="285" y="1020" class="small">T₀ = ⌊(N−32)/8⌋ + 1</text>
+  <text x="285" y="1048" class="small">Tₚ = 16⌈T₀/16⌉</text>
+  <text x="285" y="1112" class="small">Dimension convention</text>
+  <text x="285" y="1140" class="tiny">B: batch · J: speakers (=2)</text>
+  <text x="285" y="1166" class="tiny">F₀: encoder channels (=256)</text>
+  <text x="285" y="1192" class="tiny">F: separator channels (=128)</text>
+  <text x="285" y="1218" class="tiny">N: samples · T: latent frames</text>
+
+  <!-- Separation encoder group -->
+  <rect class="group" x="535" y="210" width="745" height="1060" fill="#f5faff"/>
+  <text x="907" y="248" class="group-title">Separation Encoder</text>
+  <text x="907" y="275" class="small">single mixture stream · Bᴱ=2 Global/Local pairs per stage</text>
+
+  <!-- E0 -->
+  <rect class="enc" x="585" y="305" width="645" height="132"/>
+  <text x="695" y="335" class="box-title">Encoder stage E₀</text>
+  <rect class="box" x="820" y="322" width="245" height="54" fill="#ffffff"/>
+  <text x="942" y="355" class="body">[Global → Local] ×2</text>
+  <rect class="box" x="1085" y="315" width="125" height="100" fill="#dff1e4"/>
+  <text x="1147" y="342" class="small">DWConv</text>
+  <text x="1147" y="365" class="tiny">K=5, S=2</text>
+  <text x="1147" y="388" class="tiny">BN + GELU</text>
+  <text x="695" y="382" class="dim">in/skip q₀: (B × 128 × Tₚ)</text>
+  <text x="695" y="412" class="dim">out: (B × 128 × Tₚ/2)</text>
+
+  <!-- E1 -->
+  <rect class="enc" x="585" y="478" width="645" height="132"/>
+  <text x="695" y="508" class="box-title">Encoder stage E₁</text>
+  <rect class="box" x="820" y="495" width="245" height="54" fill="#ffffff"/>
+  <text x="942" y="528" class="body">[Global → Local] ×2</text>
+  <rect class="box" x="1085" y="488" width="125" height="100" fill="#dff1e4"/>
+  <text x="1147" y="515" class="small">DWConv</text>
+  <text x="1147" y="538" class="tiny">K=5, S=2</text>
+  <text x="1147" y="561" class="tiny">BN + GELU</text>
+  <text x="695" y="555" class="dim">in/skip q₁: (B × 128 × Tₚ/2)</text>
+  <text x="695" y="585" class="dim">out: (B × 128 × Tₚ/4)</text>
+
+  <!-- E2 -->
+  <rect class="enc" x="585" y="651" width="645" height="132"/>
+  <text x="695" y="681" class="box-title">Encoder stage E₂</text>
+  <rect class="box" x="820" y="668" width="245" height="54" fill="#ffffff"/>
+  <text x="942" y="701" class="body">[Global → Local] ×2</text>
+  <rect class="box" x="1085" y="661" width="125" height="100" fill="#dff1e4"/>
+  <text x="1147" y="688" class="small">DWConv</text>
+  <text x="1147" y="711" class="tiny">K=5, S=2</text>
+  <text x="1147" y="734" class="tiny">BN + GELU</text>
+  <text x="695" y="728" class="dim">in/skip q₂: (B × 128 × Tₚ/4)</text>
+  <text x="695" y="758" class="dim">out: (B × 128 × Tₚ/8)</text>
+
+  <!-- E3 -->
+  <rect class="enc" x="585" y="824" width="645" height="132"/>
+  <text x="695" y="854" class="box-title">Encoder stage E₃</text>
+  <rect class="box" x="820" y="841" width="245" height="54" fill="#ffffff"/>
+  <text x="942" y="874" class="body">[Global → Local] ×2</text>
+  <rect class="box" x="1085" y="834" width="125" height="100" fill="#dff1e4"/>
+  <text x="1147" y="861" class="small">DWConv</text>
+  <text x="1147" y="884" class="tiny">K=5, S=2</text>
+  <text x="1147" y="907" class="tiny">BN + GELU</text>
+  <text x="695" y="901" class="dim">in/skip q₃: (B × 128 × Tₚ/8)</text>
+  <text x="695" y="931" class="dim">out: (B × 128 × Tₚ/16)</text>
+
+  <!-- bottleneck -->
+  <rect class="enc" x="585" y="1008" width="645" height="120"/>
+  <text x="907" y="1040" class="box-title">Bottleneck</text>
+  <text x="907" y="1073" class="body">[Global Transformer → Local Transformer] ×2</text>
+  <text x="907" y="1105" class="dim">hᵦ: (B × 128 × Tₚ/16) · no downsample · no PARR</text>
+
+  <!-- encoder vertical flow -->
+  <path class="main" d="M500 897 H550 V371 H585"/>
+  <path class="main" d="M907 437 V478"/>
+  <path class="main" d="M907 610 V651"/>
+  <path class="main" d="M907 783 V824"/>
+  <path class="main" d="M907 956 V1008"/>
+
+  <!-- RPE -->
+  <rect class="split" x="610" y="1160" width="595" height="77"/>
+  <text x="907" y="1187" class="box-title">Relative Positional Encoding</text>
+  <text x="907" y="1216" class="small">8 heads · dₖ=16 · Pₖ: (Tᵦ × Tᵦ × 16), Tᵦ=Tₚ/16 → every Global Transformer</text>
+  <path class="control" d="M610 1198 H565 V290 H780 V305"/>
+
+  <!-- Speaker Split group -->
+  <rect class="group" x="1315" y="210" width="430" height="1060" fill="#faf7fe"/>
+  <text x="1530" y="248" class="group-title">Speaker Split</text>
+  <text x="1530" y="275" class="small">same module/weights at all five scales</text>
+
+  <rect class="split" x="1350" y="306" width="360" height="105"/>
+  <text x="1530" y="335" class="box-title">SS(q₀)</text>
+  <text x="1530" y="365" class="dim">(BJ × 128 × Tₚ)</text>
+  <text x="1530" y="390" class="tiny">J=2</text>
+
+  <rect class="split" x="1350" y="479" width="360" height="105"/>
+  <text x="1530" y="508" class="box-title">SS(q₁)</text>
+  <text x="1530" y="538" class="dim">(BJ × 128 × Tₚ/2)</text>
+  <text x="1530" y="563" class="tiny">J=2</text>
+
+  <rect class="split" x="1350" y="652" width="360" height="105"/>
+  <text x="1530" y="681" class="box-title">SS(q₂)</text>
+  <text x="1530" y="711" class="dim">(BJ × 128 × Tₚ/4)</text>
+  <text x="1530" y="736" class="tiny">J=2</text>
+
+  <rect class="split" x="1350" y="825" width="360" height="105"/>
+  <text x="1530" y="854" class="box-title">SS(q₃)</text>
+  <text x="1530" y="884" class="dim">(BJ × 128 × Tₚ/8)</text>
+  <text x="1530" y="909" class="tiny">J=2</text>
+
+  <rect class="split" x="1350" y="1009" width="360" height="105"/>
+  <text x="1530" y="1038" class="box-title">SS(hᵦ)</text>
+  <text x="1530" y="1068" class="dim">(BJ × 128 × Tₚ/16)</text>
+  <text x="1530" y="1093" class="tiny">feeds Decoder D₀ and Aux₀</text>
+
+  <rect class="split" x="1350" y="1150" width="360" height="87"/>
+  <text x="1530" y="1177" class="small">PWConv F→4FJ → GLU → PWConv 2FJ→FJ</text>
+  <text x="1530" y="1205" class="small">reshape (B×FJ×T)→(BJ×F×T) → GroupNorm</text>
+
+  <!-- Skip connections from encoder to SS -->
+  <path class="skipline" d="M1065 349 H1350"/>
+  <path class="skipline" d="M1065 522 H1350"/>
+  <path class="skipline" d="M1065 695 H1350"/>
+  <path class="skipline" d="M1065 868 H1350"/>
+  <path class="main" d="M1230 1068 H1350"/>
+
+  <!-- Reconstruction decoder group -->
+  <rect class="group" x="1780" y="210" width="1370" height="1060" fill="#f7fcf8"/>
+  <text x="2465" y="248" class="group-title">Reconstruction Decoder</text>
+  <text x="2465" y="275" class="small">speaker-wise shared processing · Bᴰ=3 Global/Local/CS triplets per stage</text>
+
+  <!-- D3 row -->
+  <rect class="stage" x="1825" y="305" width="1280" height="132"/>
+  <text x="1912" y="335" class="box-title">D₃ · Tₚ</text>
+  <rect class="box" x="1848" y="354" width="130" height="56" fill="#ffffff"/>
+  <text x="1913" y="388" class="small">↑ nearest ×2</text>
+  <rect class="box" x="2022" y="342" width="100" height="72" fill="#ffffff"/>
+  <text x="2072" y="372" class="small">Concat</text>
+  <text x="2072" y="396" class="tiny">256 ch.</text>
+  <rect class="box" x="2165" y="342" width="165" height="72" fill="#ffffff"/>
+  <text x="2247" y="372" class="small">PWConv 1×1</text>
+  <text x="2247" y="396" class="tiny">256 → 128</text>
+  <rect class="box" x="2375" y="330" width="440" height="90" fill="#e2f2e6"/>
+  <text x="2595" y="362" class="body">[Global → Local → CS] ×3</text>
+  <text x="2595" y="392" class="dim">(BJ × 128 × Tₚ)</text>
+  <rect class="parr" x="2860" y="342" width="205" height="72"/>
+  <text x="2962" y="371" class="box-title">PARR₃</text>
+  <text x="2962" y="397" class="tiny">H′₃ · main</text>
+
+  <!-- D2 row -->
+  <rect class="stage" x="1825" y="478" width="1280" height="132"/>
+  <text x="1912" y="508" class="box-title">D₂ · Tₚ/2</text>
+  <rect class="box" x="1848" y="527" width="130" height="56" fill="#ffffff"/>
+  <text x="1913" y="561" class="small">↑ nearest ×2</text>
+  <rect class="box" x="2022" y="515" width="100" height="72" fill="#ffffff"/>
+  <text x="2072" y="545" class="small">Concat</text>
+  <text x="2072" y="569" class="tiny">256 ch.</text>
+  <rect class="box" x="2165" y="515" width="165" height="72" fill="#ffffff"/>
+  <text x="2247" y="545" class="small">PWConv 1×1</text>
+  <text x="2247" y="569" class="tiny">256 → 128</text>
+  <rect class="box" x="2375" y="503" width="440" height="90" fill="#e2f2e6"/>
+  <text x="2595" y="535" class="body">[Global → Local → CS] ×3</text>
+  <text x="2595" y="565" class="dim">(BJ × 128 × Tₚ/2)</text>
+  <rect class="parr" x="2860" y="515" width="205" height="72"/>
+  <text x="2962" y="544" class="box-title">PARR₂</text>
+  <text x="2962" y="570" class="tiny">H′₂ · Aux₃</text>
+
+  <!-- D1 row -->
+  <rect class="stage" x="1825" y="651" width="1280" height="132"/>
+  <text x="1912" y="681" class="box-title">D₁ · Tₚ/4</text>
+  <rect class="box" x="1848" y="700" width="130" height="56" fill="#ffffff"/>
+  <text x="1913" y="734" class="small">↑ nearest ×2</text>
+  <rect class="box" x="2022" y="688" width="100" height="72" fill="#ffffff"/>
+  <text x="2072" y="718" class="small">Concat</text>
+  <text x="2072" y="742" class="tiny">256 ch.</text>
+  <rect class="box" x="2165" y="688" width="165" height="72" fill="#ffffff"/>
+  <text x="2247" y="718" class="small">PWConv 1×1</text>
+  <text x="2247" y="742" class="tiny">256 → 128</text>
+  <rect class="box" x="2375" y="676" width="440" height="90" fill="#e2f2e6"/>
+  <text x="2595" y="708" class="body">[Global → Local → CS] ×3</text>
+  <text x="2595" y="738" class="dim">(BJ × 128 × Tₚ/4)</text>
+  <rect class="parr" x="2860" y="688" width="205" height="72"/>
+  <text x="2962" y="717" class="box-title">PARR₁</text>
+  <text x="2962" y="743" class="tiny">H′₁ · Aux₂</text>
+
+  <!-- D0 row -->
+  <rect class="stage" x="1825" y="824" width="1280" height="132"/>
+  <text x="1912" y="854" class="box-title">D₀ · Tₚ/8</text>
+  <rect class="box" x="1848" y="873" width="130" height="56" fill="#ffffff"/>
+  <text x="1913" y="907" class="small">↑ nearest ×2</text>
+  <rect class="box" x="2022" y="861" width="100" height="72" fill="#ffffff"/>
+  <text x="2072" y="891" class="small">Concat</text>
+  <text x="2072" y="915" class="tiny">256 ch.</text>
+  <rect class="box" x="2165" y="861" width="165" height="72" fill="#ffffff"/>
+  <text x="2247" y="891" class="small">PWConv 1×1</text>
+  <text x="2247" y="915" class="tiny">256 → 128</text>
+  <rect class="box" x="2375" y="849" width="440" height="90" fill="#e2f2e6"/>
+  <text x="2595" y="881" class="body">[Global → Local → CS] ×3</text>
+  <text x="2595" y="911" class="dim">(BJ × 128 × Tₚ/8)</text>
+  <rect class="parr" x="2860" y="861" width="205" height="72"/>
+  <text x="2962" y="890" class="box-title">PARR₀</text>
+  <text x="2962" y="916" class="tiny">H′₀ · Aux₁</text>
+
+  <!-- Decoder skip inputs: upper port of concat -->
+  <path class="skipline" d="M1710 358 H1998 V363 H2022"/>
+  <path class="skipline" d="M1710 531 H1998 V536 H2022"/>
+  <path class="skipline" d="M1710 704 H1998 V709 H2022"/>
+  <path class="skipline" d="M1710 877 H1998 V882 H2022"/>
+
+  <!-- Internal straight decoder row connections -->
+  <path class="main" d="M1978 396 H2022"/>
+  <path class="main" d="M2122 378 H2165"/>
+  <path class="main" d="M2330 378 H2375"/>
+  <path class="main" d="M2815 378 H2860"/>
+  <path class="main" d="M1978 569 H2022"/>
+  <path class="main" d="M2122 551 H2165"/>
+  <path class="main" d="M2330 551 H2375"/>
+  <path class="main" d="M2815 551 H2860"/>
+  <path class="main" d="M1978 742 H2022"/>
+  <path class="main" d="M2122 724 H2165"/>
+  <path class="main" d="M2330 724 H2375"/>
+  <path class="main" d="M2815 724 H2860"/>
+  <path class="main" d="M1978 915 H2022"/>
+  <path class="main" d="M2122 897 H2165"/>
+  <path class="main" d="M2330 897 H2375"/>
+  <path class="main" d="M2815 897 H2860"/>
+
+  <!-- Main progressive decoder flow: bottleneck -> D0 -> D1 -> D2 -> D3 -->
+  <path class="main" d="M1710 1061 H1802 V929 H1848"/>
+  <text x="1780" y="1044" class="tiny">(BJ×128×Tₚ/16)</text>
+  <path class="main" d="M3065 897 H3118 V800 H1810 V742 H1848"/>
+  <path class="main" d="M3065 724 H3132 V627 H1798 V569 H1848"/>
+  <path class="main" d="M3065 551 H3146 V454 H1786 V396 H1848"/>
+
+  <!-- Aux taps -->
+  <circle cx="1740" cy="1061" r="12" fill="#b64d7d"/>
+  <circle cx="3080" cy="897" r="12" fill="#b64d7d"/>
+  <circle cx="3080" cy="724" r="12" fill="#b64d7d"/>
+  <circle cx="3080" cy="551" r="12" fill="#b64d7d"/>
+  <text x="1738" y="1093" class="tiny">Aux₀</text>
+  <text x="3092" y="934" class="tiny">Aux₁</text>
+  <text x="3092" y="761" class="tiny">Aux₂</text>
+  <text x="3092" y="588" class="tiny">Aux₃</text>
+
+  <rect class="parr" x="1860" y="1030" width="1210" height="118"/>
+  <text x="2465" y="1062" class="box-title">PARR placement rule</text>
+  <text x="2465" y="1093" class="body">After all Global / Local / Cross-Speaker processing of every decoder stage</text>
+  <text x="2465" y="1122" class="small">H′ᵣ feeds the next stage; one shared temporal core, with stage-specific Nᵣ and γᵣ</text>
+  <text x="2465" y="1194" class="small">Stage index r=0,1,2,3 corresponds to Tᵣ={Tₚ/8, Tₚ/4, Tₚ/2, Tₚ}</text>
+  <text x="2465" y="1222" class="small">PARR treats BJ as batch-like branches; it adds no cross-speaker operation</text>
+
+  <!-- Output group -->
+  <rect class="group" x="3185" y="210" width="580" height="1060" fill="#fff9fb"/>
+  <text x="3475" y="248" class="group-title">Waveform back-end</text>
+
+  <path class="main" d="M3065 378 H3215 V342 H3240"/>
+  <text x="3160" y="360" class="tiny">H′₃ (BJ×128×Tₚ)</text>
+
+  <rect class="output" x="3240" y="292" width="470" height="176"/>
+  <text x="3475" y="325" class="box-title">Main Output Layer</text>
+  <text x="3475" y="356" class="body">crop Tₚ→T₀ · Linear 128→512</text>
+  <text x="3475" y="385" class="body">GLU 512→256 · Linear 256→256</text>
+  <text x="3475" y="414" class="body">reshape BJ→(B,J)</text>
+  <text x="3475" y="445" class="dim">(B × J × 256 × T₀)</text>
+
+  <rect class="output" x="3240" y="535" width="470" height="142"/>
+  <text x="3475" y="569" class="box-title">Shared Audio Decoder ×J</text>
+  <text x="3475" y="600" class="body">ConvTranspose1D 256→1</text>
+  <text x="3475" y="629" class="body">kernel 32 · stride 8</text>
+  <text x="3475" y="658" class="dim">(B × J × N)</text>
+  <path class="main" d="M3475 468 V535"/>
+
+  <rect class="output" x="3240" y="736" width="470" height="112"/>
+  <text x="3475" y="772" class="box-title">Separated waveforms</text>
+  <text x="3475" y="807" class="formula">ŝ₁, ŝ₂ ∈ ℝᴮ×ᴺ</text>
+  <path class="main" d="M3475 677 V736"/>
+
+  <rect class="output" x="3240" y="930" width="470" height="224"/>
+  <text x="3475" y="963" class="box-title">Auxiliary heads r=0…3</text>
+  <text x="3475" y="994" class="body">nearest upsample feature → T₀</text>
+  <text x="3475" y="1023" class="body">stage-specific OutputLayer(masking)</text>
+  <text x="3475" y="1052" class="body">ReLU mask ⊙ encoder feature</text>
+  <text x="3475" y="1081" class="body">stage-specific AudioDecoder</text>
+  <text x="3475" y="1110" class="body">PIT SI-SNR on STFT magnitude</text>
+  <text x="3475" y="1139" class="small">taps: hᵦ, H′₀, H′₁, H′₂</text>
+  <path class="auxline" d="M1740 1073 H1765 V1245 H3200 V1040 H3240"/>
+  <path class="auxline" d="M3080 897 H3200 V1010 H3240"/>
+  <path class="auxline" d="M3080 724 H3215 V980 H3240"/>
+  <path class="auxline" d="M3080 551 H3230 V950 H3240"/>
+
+  <!-- Legend -->
+  <rect x="3240" y="1182" width="470" height="62" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" rx="8"/>
+  <path class="main" d="M3265 1203 H3335"/>
+  <text x="3405" y="1209" class="tiny">main flow</text>
+  <path class="skipline" d="M3460 1203 H3530"/>
+  <text x="3600" y="1209" class="tiny">skip</text>
+  <path class="auxline" d="M3265 1228 H3335"/>
+  <text x="3405" y="1234" class="tiny">auxiliary</text>
+  <path class="control" d="M3460 1228 H3530"/>
+  <text x="3600" y="1234" class="tiny">positional</text>
+
+  <!-- ==================== PANEL B: PARR DETAIL ==================== -->
+  <rect class="panel" x="35" y="1375" width="2460" height="750"/>
+  <text x="70" y="1420" class="panel-title">B. PARRᵣ detail — exact forward path</text>
+  <text x="70" y="1452" class="body-left">Input/output use channel-first convention. Cᵦ=64; the zero-initialized controller produces a channel-temporal gate.</text>
+
+  <!-- stage input and norm -->
+  <rect class="stage" x="75" y="1632" width="190" height="100"/>
+  <text x="170" y="1665" class="box-title">Hᵣ</text>
+  <text x="170" y="1698" class="dim">(BJ×128×Tᵣ)</text>
+
+  <rect class="split" x="320" y="1632" width="185" height="100"/>
+  <text x="412" y="1665" class="box-title">Nᵣ</text>
+  <text x="412" y="1697" class="small">Channel LayerNorm</text>
+  <text x="412" y="1719" class="tiny">stage-specific</text>
+  <path class="main" d="M265 1682 H320"/>
+
+  <rect class="box" x="560" y="1618" width="230" height="128" fill="#eaf3fb"/>
+  <text x="675" y="1650" class="box-title">Bottleneck Bθ</text>
+  <text x="675" y="1680" class="body">PWConv 128→64</text>
+  <text x="675" y="1707" class="body">PReLU → Channel LN</text>
+  <text x="675" y="1732" class="formula">Zᵣ ∈ ℝᴮᴶ×⁶⁴×ᵀʳ</text>
+  <path class="main" d="M505 1682 H560"/>
+
+  <!-- Conv-U branches -->
+  <rect class="box" x="865" y="1518" width="300" height="128" fill="#dff1f9"/>
+  <text x="1015" y="1550" class="box-title">Conv-U branch U</text>
+  <text x="1015" y="1580" class="small">LN→PWConv→SiLU→DWConv K3</text>
+  <text x="1015" y="1606" class="small">→Dropout + identity residual</text>
+  <text x="1015" y="1632" class="formula">Uᵣ = ConvU(Zᵣ)</text>
+
+  <rect class="box" x="865" y="1792" width="300" height="128" fill="#dff1f9"/>
+  <text x="1015" y="1824" class="box-title">Conv-U branch V</text>
+  <text x="1015" y="1854" class="small">LN→PWConv→SiLU→DWConv K3</text>
+  <text x="1015" y="1880" class="small">→Dropout + identity residual</text>
+  <text x="1015" y="1906" class="formula">Vᵣ = ConvU(Zᵣ)</text>
+
+  <path class="main" d="M790 1682 H825 V1582 H865"/>
+  <path class="main" d="M790 1682 H825 V1856 H865"/>
+
+  <!-- FSMN -->
+  <rect class="box" x="1235" y="1770" width="380" height="172" fill="#dff1f9"/>
+  <text x="1425" y="1802" class="box-title">Dense Dilated FSMN</text>
+  <text x="1425" y="1832" class="small">x₀: LN→PWConv64→64→PReLU</text>
+  <text x="1425" y="1859" class="small">4 dense memory states, d=[1,2,4,8]</text>
+  <text x="1425" y="1886" class="small">PW projection → DWConv K3,d → PReLU → Dropout</text>
+  <text x="1425" y="1913" class="small">Concat 4 states (256 ch.) → PWConv → 64</text>
+  <text x="1425" y="1937" class="formula">Mᵣ = FSMN(Vᵣ)</text>
+  <path class="main" d="M1165 1856 H1235"/>
+
+  <!-- U times M and correction norm -->
+  <circle cx="1692" cy="1582" r="34" fill="#ffe6a8" stroke="#31445b" stroke-width="2.4"/>
+  <text x="1692" y="1591" class="box-title">⊙</text>
+  <path class="main" d="M1165 1582 H1658"/>
+  <path class="main" d="M1615 1856 H1640 V1645 H1692 V1616"/>
+
+  <rect class="split" x="1768" y="1522" width="260" height="120"/>
+  <text x="1898" y="1554" class="box-title">Correction Norm</text>
+  <text x="1898" y="1585" class="body">Channel LayerNorm</text>
+  <text x="1898" y="1618" class="formula">Rᵣ=Norm(Uᵣ⊙Mᵣ)</text>
+  <path class="main" d="M1726 1582 H1768"/>
+
+  <!-- Temporal controller -->
+  <rect class="parr" x="1660" y="1830" width="390" height="130"/>
+  <text x="1855" y="1862" class="box-title">Channel-Temporal Controller Gφ</text>
+  <text x="1855" y="1892" class="body">Concat [Zᵣ,Rᵣ]: 128 ch.</text>
+  <text x="1855" y="1921" class="body">PWConv 128→64 → Sigmoid</text>
+  <text x="1855" y="1950" class="formula">Aᵣ ∈ [0,1]ᴮᴶ×⁶⁴×ᵀʳ</text>
+  <path class="main" d="M790 1717 H815 V2000 H1625 V1895 H1660"/>
+  <path class="main" d="M1898 1642 V1785 H2025 V1830"/>
+
+  <!-- controlled correction and output projection -->
+  <circle cx="2130" cy="1582" r="34" fill="#ffe6a8" stroke="#31445b" stroke-width="2.4"/>
+  <text x="2130" y="1591" class="box-title">⊙</text>
+  <path class="main" d="M2028 1582 H2096"/>
+  <path class="main" d="M2050 1895 H2130 V1616"/>
+  <text x="2130" y="1534" class="tiny">element-wise channel-time modulation</text>
+
+  <rect class="box" x="2195" y="1522" width="235" height="120" fill="#eaf3fb"/>
+  <text x="2312" y="1554" class="box-title">Output Wθ</text>
+  <text x="2312" y="1585" class="body">PWConv 64→128</text>
+  <text x="2312" y="1618" class="formula">Δᵣ=Wθ(Aᵣ⊙Rᵣ)</text>
+  <path class="main" d="M2164 1582 H2195"/>
+
+  <!-- gamma + outer residual shown lower due width -->
+  <circle cx="2312" cy="1744" r="34" fill="#f9dce5" stroke="#31445b" stroke-width="2.4"/>
+  <text x="2312" y="1753" class="box-title">×</text>
+  <text x="2374" y="1740" class="formula">γᵣ</text>
+  <text x="2374" y="1766" class="tiny">γᵣ,₀=0</text>
+  <path class="main" d="M2312 1642 V1710"/>
+
+  <circle cx="2312" cy="1870" r="34" fill="#f9dce5" stroke="#31445b" stroke-width="2.4"/>
+  <text x="2312" y="1879" class="box-title">+</text>
+  <path class="main" d="M2312 1778 V1836"/>
+  <path class="main" d="M170 1632 V1490 H2380 V1870 H2346"/>
+  <text x="2312" y="1940" class="formula">H′ᵣ = Hᵣ + γᵣΔᵣ</text>
+  <text x="2312" y="1970" class="dim">(BJ×128×Tᵣ)</text>
+
+  <!-- shared/stage-specific frames -->
+  <path class="shared-frame" d="M535 1480 H2460 V1665 H2075 V1995 H820 V1770 H535 Z"/>
+  <text x="1400" y="2030" class="small" fill="#7655a5">Shared θ,φ across all r and all BJ branches: Bθ, Conv-U×2, FSMN, Correction Norm, Gφ, Wθ</text>
+  <text x="410" y="1783" class="small" fill="#7655a5">stage-specific: Nᵣ</text>
+  <text x="2285" y="2059" class="small" fill="#7655a5">stage-specific: γᵣ</text>
+  <text x="1240" y="2091" class="small">Pure correction: there is no Zᵣ+Rᵣ inside the temporal core; the only outer residual is Hᵣ+γᵣΔᵣ.</text>
+
+  <!-- ==================== PANEL C: inherited block definitions ==================== -->
+  <rect class="panel" x="2525" y="1375" width="1280" height="750"/>
+  <text x="2560" y="1420" class="panel-title">C. SepReformer blocks inherited unchanged</text>
+  <text x="3165" y="1453" class="small">All three blocks preserve (· × 128 × T); residual units use LayerScale and dropout.</text>
+
+  <rect class="enc" x="2570" y="1490" width="1185" height="150"/>
+  <text x="2740" y="1524" class="box-title">Global Transformer</text>
+  <rect class="box" x="2920" y="1510" width="430" height="105" fill="#ffffff"/>
+  <text x="3135" y="1538" class="body">EGA</text>
+  <text x="3135" y="1565" class="small">adaptive avg-pool to Tᵦ → MHSA(8 heads + RPE)</text>
+  <text x="3135" y="1590" class="small">nearest upsample × sigmoid gate + residual</text>
+  <rect class="box" x="3380" y="1510" width="330" height="105" fill="#ffffff"/>
+  <text x="3545" y="1540" class="body">GCFN</text>
+  <text x="3545" y="1568" class="small">LN→Linear 6F→DWConv K3</text>
+  <text x="3545" y="1593" class="small">→GLU 3F→Linear F + residual</text>
+  <path class="main" d="M3350 1562 H3380"/>
+
+  <rect class="enc" x="2570" y="1672" width="1185" height="150"/>
+  <text x="2740" y="1706" class="box-title">Local Transformer</text>
+  <rect class="box" x="2920" y="1692" width="430" height="105" fill="#ffffff"/>
+  <text x="3135" y="1720" class="body">CLA</text>
+  <text x="3135" y="1747" class="small">LN→Linear 2F→GLU→DWConv K65</text>
+  <text x="3135" y="1772" class="small">→Linear 2F→BN→GELU→Linear F + residual</text>
+  <rect class="box" x="3380" y="1692" width="330" height="105" fill="#ffffff"/>
+  <text x="3545" y="1722" class="body">GCFN</text>
+  <text x="3545" y="1750" class="small">LN→Linear 6F→DWConv K3</text>
+  <text x="3545" y="1775" class="small">→GLU 3F→Linear F + residual</text>
+  <path class="main" d="M3350 1744 H3380"/>
+
+  <rect class="enc" x="2570" y="1854" width="1185" height="150"/>
+  <text x="2740" y="1888" class="box-title">Cross-Speaker Transformer</text>
+  <rect class="box" x="2920" y="1874" width="430" height="105" fill="#ffffff"/>
+  <text x="3135" y="1902" class="body">Speaker-axis MHSA</text>
+  <text x="3135" y="1929" class="small">reshape (BJ×F×T)→(BT×J×F)</text>
+  <text x="3135" y="1954" class="small">MHSA 8 heads, no positional encoding + residual</text>
+  <rect class="box" x="3380" y="1874" width="330" height="105" fill="#ffffff"/>
+  <text x="3545" y="1904" class="body">GCFN + reshape back</text>
+  <text x="3545" y="1932" class="small">frame-wise channel mixing</text>
+  <text x="3545" y="1957" class="small">output (BJ×F×T)</text>
+  <path class="main" d="M3350 1926 H3380"/>
+
+  <rect x="2570" y="2038" width="1185" height="55" fill="#f7f9fc" stroke="#cbd5e1" stroke-width="1.8" rx="8"/>
+  <text x="3162" y="2072" class="small">G = Global Transformer · L = Local Transformer · CS = Cross-Speaker Transformer · PW/DW = point/depth-wise convolution</text>
+
+  <text x="1920" y="2142" class="tiny">Architecture source: SepReformer paper and repository code; PARR source: models/SepReformer_PARR_Libri2Mix_16K/modules/module.py and configs.yaml</text>
+</svg>

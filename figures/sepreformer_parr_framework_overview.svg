@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+  <defs>
+    <marker id="arrMain" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L12,5 L0,10 Z" fill="#24364b"/></marker>
+    <marker id="arrSkip" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L12,5 L0,10 Z" fill="#397fbd"/></marker>
+    <marker id="arrAux" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L12,5 L0,10 Z" fill="#b24f78"/></marker>
+    <marker id="arrCtrl" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L12,5 L0,10 Z" fill="#7c58b5"/></marker>
+    <style>
+      .title{font:700 48px Arial,sans-serif;fill:#12233a;text-anchor:middle}.subtitle{font:400 20px Arial,sans-serif;fill:#52647a;text-anchor:middle}
+      .panelTitle{font:700 27px Arial,sans-serif;fill:#172a43}.groupTitle{font:700 23px Arial,sans-serif;fill:#172a43;text-anchor:middle}
+      .boxTitle{font:700 19px Arial,sans-serif;fill:#1d3048;text-anchor:middle}.body{font:400 16px Arial,sans-serif;fill:#32475f;text-anchor:middle}
+      .small{font:400 14px Arial,sans-serif;fill:#52657a;text-anchor:middle}.dim{font:italic 15px Arial,sans-serif;fill:#334b66;text-anchor:middle}
+      .formula{font:italic 18px Georgia,serif;fill:#1b2e46;text-anchor:middle}.panel{fill:#fff;stroke:#8c9caf;stroke-width:2.5}
+      .group{stroke:#8293a8;stroke-width:2.2}.front{fill:#fff8ec;stroke:#c78b3b;stroke-width:2}.enc{fill:#eaf4fc;stroke:#4f86b3;stroke-width:2}
+      .split{fill:#f3edfc;stroke:#7d5db0;stroke-width:2}.dec{fill:#edf8f0;stroke:#4d9167;stroke-width:2}.parr{fill:#fff2cf;stroke:#c98b22;stroke-width:2.2}
+      .out{fill:#fcecf1;stroke:#ae5e7b;stroke-width:2}.neutral{fill:#f7f9fc;stroke:#71849a;stroke-width:2}
+      .main{fill:none;stroke:#24364b;stroke-width:3;stroke-linecap:square;stroke-linejoin:miter;marker-end:url(#arrMain)}
+      .mainPlain{fill:none;stroke:#24364b;stroke-width:3;stroke-linecap:square;stroke-linejoin:miter}.skip{fill:none;stroke:#397fbd;stroke-width:2.6;stroke-dasharray:10 7;stroke-linecap:square;stroke-linejoin:miter;marker-end:url(#arrSkip)}
+      .aux{fill:none;stroke:#b24f78;stroke-width:2.6;stroke-dasharray:5 6;stroke-linecap:square;stroke-linejoin:miter;marker-end:url(#arrAux)}
+      .ctrl{fill:none;stroke:#7c58b5;stroke-width:2.5;stroke-dasharray:9 6;stroke-linecap:square;stroke-linejoin:miter;marker-end:url(#arrCtrl)}
+      .chip{fill:#fff;stroke:#60758d;stroke-width:1.8}.op{fill:#fff8e1;stroke:#cf942a;stroke-width:2}.shared{fill:none;stroke:#8a64bf;stroke-width:2.3;stroke-dasharray:12 8}
+      text[text-anchor="start"]{text-anchor:start}
+    </style>
+  </defs>
+
+  <rect width="3840" height="2160" fill="#ffffff"/>
+  <text x="1920" y="62" class="title">SepReformer-PARR Framework</text>
+  <text x="1920" y="101" class="subtitle">Progressive Adaptive Residual Refinement for two-speaker separation on Libri2Mix 16 kHz</text>
+
+  <!-- A. End-to-end framework -->
+  <rect class="panel" x="38" y="132" width="3764" height="1260" rx="24"/>
+  <text x="72" y="177" class="panelTitle">A. End-to-end framework</text>
+
+  <!-- Front-end -->
+  <rect class="group" x="70" y="207" width="420" height="1118" rx="20" fill="#fffdf8"/>
+  <text x="280" y="246" class="groupTitle">Waveform front-end</text>
+  <rect class="out" x="115" y="284" width="330" height="108" rx="13"/>
+  <text x="280" y="316" class="boxTitle">Mixture waveform x</text>
+  <polyline points="145,354 158,338 171,365 184,329 197,359 210,336 223,371 236,326 249,361 262,341 275,368 288,330 301,359 314,337 327,369 340,328 353,358 366,340 379,365 392,334 415,354" fill="none" stroke="#357fc0" stroke-width="3"/>
+  <text x="280" y="383" class="dim">[B &#215; N]</text>
+  <rect class="front" x="115" y="452" width="330" height="128" rx="13"/>
+  <text x="280" y="482" class="boxTitle">Audio Encoder</text>
+  <text x="280" y="512" class="body">Conv1D 1 &#8594; 256 + GELU</text>
+  <text x="280" y="539" class="body">kernel 32, stride 8</text>
+  <text x="280" y="566" class="dim">E: [B &#215; 256 &#215; T&#8320;]</text>
+  <rect class="front" x="115" y="648" width="330" height="132" rx="13"/>
+  <text x="280" y="678" class="boxTitle">Feature Projector</text>
+  <text x="280" y="708" class="body">GroupNorm + Conv1D 1&#215;1</text>
+  <text x="280" y="735" class="body">256 &#8594; F = 128</text>
+  <text x="280" y="765" class="dim">Q: [B &#215; 128 &#215; T&#8320;]</text>
+  <rect class="neutral" x="115" y="848" width="330" height="118" rx="13"/>
+  <text x="280" y="881" class="boxTitle">Temporal padding</text>
+  <text x="280" y="912" class="body">T<tspan baseline-shift="sub" font-size="12">p</tspan> divisible by 2&#8308; = 16</text>
+  <text x="280" y="948" class="dim">Q<tspan baseline-shift="sub" font-size="11">p</tspan>: [B &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>]</text>
+  <path class="main" d="M280 392 V452"/><path class="main" d="M280 580 V648"/><path class="main" d="M280 780 V848"/>
+  <text x="280" y="1042" class="small">T&#8320; = floor((N - 32) / 8) + 1</text>
+  <text x="280" y="1075" class="small">J = 2 speakers, F = 128</text>
+  <text x="280" y="1108" class="small">All separator tensors use channel-first</text>
+  <text x="280" y="1134" class="small">notation [batch &#215; channel &#215; time]</text>
+
+  <!-- Encoder -->
+  <rect class="group" x="525" y="207" width="815" height="1118" rx="20" fill="#f7fbff"/>
+  <text x="932" y="246" class="groupTitle">Multi-scale Separation Encoder</text>
+  <text x="932" y="273" class="small">four stages; the same structure is instantiated at every scale</text>
+
+  <g>
+    <rect class="enc" x="565" y="302" width="735" height="142" rx="13"/>
+    <text x="600" y="333" class="boxTitle" text-anchor="start">Encoder stage E&#8320;</text>
+    <rect class="chip" x="600" y="350" width="410" height="58" rx="9"/><text x="805" y="385" class="body">[Global Transformer &#8594; Local Transformer] &#215;2</text>
+    <rect class="chip" x="1040" y="337" width="220" height="82" rx="9"/><text x="1150" y="367" class="body">Depthwise Conv</text><text x="1150" y="391" class="small">K=5, S=2 + BN + GELU</text>
+    <text x="932" y="432" class="dim">skip S&#8320;: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>] &#183; output: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/2]</text>
+    <path class="main" d="M1010 379 H1040"/>
+  </g>
+  <g>
+    <rect class="enc" x="565" y="486" width="735" height="142" rx="13"/>
+    <text x="600" y="517" class="boxTitle" text-anchor="start">Encoder stage E&#8321;</text>
+    <rect class="chip" x="600" y="534" width="410" height="58" rx="9"/><text x="805" y="569" class="body">[Global Transformer &#8594; Local Transformer] &#215;2</text>
+    <rect class="chip" x="1040" y="521" width="220" height="82" rx="9"/><text x="1150" y="551" class="body">Depthwise Conv</text><text x="1150" y="575" class="small">K=5, S=2 + BN + GELU</text>
+    <text x="932" y="616" class="dim">skip S&#8321;: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/2] &#183; output: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/4]</text>
+    <path class="main" d="M1010 563 H1040"/>
+  </g>
+  <g>
+    <rect class="enc" x="565" y="670" width="735" height="142" rx="13"/>
+    <text x="600" y="701" class="boxTitle" text-anchor="start">Encoder stage E&#8322;</text>
+    <rect class="chip" x="600" y="718" width="410" height="58" rx="9"/><text x="805" y="753" class="body">[Global Transformer &#8594; Local Transformer] &#215;2</text>
+    <rect class="chip" x="1040" y="705" width="220" height="82" rx="9"/><text x="1150" y="735" class="body">Depthwise Conv</text><text x="1150" y="759" class="small">K=5, S=2 + BN + GELU</text>
+    <text x="932" y="800" class="dim">skip S&#8322;: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/4] &#183; output: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/8]</text>
+    <path class="main" d="M1010 747 H1040"/>
+  </g>
+  <g>
+    <rect class="enc" x="565" y="854" width="735" height="142" rx="13"/>
+    <text x="600" y="885" class="boxTitle" text-anchor="start">Encoder stage E&#8323;</text>
+    <rect class="chip" x="600" y="902" width="410" height="58" rx="9"/><text x="805" y="937" class="body">[Global Transformer &#8594; Local Transformer] &#215;2</text>
+    <rect class="chip" x="1040" y="889" width="220" height="82" rx="9"/><text x="1150" y="919" class="body">Depthwise Conv</text><text x="1150" y="943" class="small">K=5, S=2 + BN + GELU</text>
+    <text x="932" y="984" class="dim">skip S&#8323;: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/8] &#183; output: [B&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">p</tspan>/16]</text>
+    <path class="main" d="M1010 931 H1040"/>
+  </g>
+  <rect class="enc" x="565" y="1046" width="735" height="142" rx="13"/>
+  <text x="932" y="1080" class="boxTitle">Bottleneck E<tspan baseline-shift="sub" font-size="13">B</tspan></text>
+  <text x="932" y="1115" class="body">[Global Transformer &#8594; Local Transformer] &#215;2</text>
+  <text x="932" y="1147" class="body">no downsampling; no PARR</text>
+  <text x="932" y="1177" class="dim">h<tspan baseline-shift="sub" font-size="11">B</tspan>: [B &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/16]</text>
+  <rect class="split" x="610" y="1220" width="645" height="69" rx="11"/>
+  <text x="932" y="1248" class="boxTitle">Relative Positional Encoding</text>
+  <text x="932" y="1273" class="small">8 heads; shared by Global Transformers at all scales</text>
+  <path class="main" d="M490 907 H515 V373 H565"/>
+  <path class="main" d="M932 444 V486"/><path class="main" d="M932 628 V670"/><path class="main" d="M932 812 V854"/><path class="main" d="M932 996 V1046"/>
+
+  <!-- Speaker split -->
+  <rect class="group" x="1375" y="207" width="395" height="1118" rx="20" fill="#fbf9ff"/>
+  <text x="1572" y="246" class="groupTitle">Speaker Split</text>
+  <text x="1572" y="273" class="small">one shared module at all five scales</text>
+  <g>
+    <rect class="split" x="1415" y="310" width="315" height="118" rx="13"/><text x="1572" y="340" class="boxTitle">SS(S&#8320;)</text><text x="1572" y="370" class="body">PWConv &#8594; GLU &#8594; PWConv</text><text x="1572" y="400" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>]</text>
+    <rect class="split" x="1415" y="494" width="315" height="118" rx="13"/><text x="1572" y="524" class="boxTitle">SS(S&#8321;)</text><text x="1572" y="554" class="body">reshape + GroupNorm</text><text x="1572" y="584" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/2]</text>
+    <rect class="split" x="1415" y="678" width="315" height="118" rx="13"/><text x="1572" y="708" class="boxTitle">SS(S&#8322;)</text><text x="1572" y="738" class="body">J = 2 speaker branches</text><text x="1572" y="768" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/4]</text>
+    <rect class="split" x="1415" y="862" width="315" height="118" rx="13"/><text x="1572" y="892" class="boxTitle">SS(S&#8323;)</text><text x="1572" y="922" class="body">same weights as above</text><text x="1572" y="952" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/8]</text>
+    <rect class="split" x="1415" y="1054" width="315" height="126" rx="13"/><text x="1572" y="1085" class="boxTitle">SS(h<tspan baseline-shift="sub" font-size="13">B</tspan>)</text><text x="1572" y="1117" class="body">decoder initial state</text><text x="1572" y="1149" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/16]</text>
+  </g>
+  <path class="skip" d="M1300 373 H1415"/><path class="skip" d="M1300 557 H1415"/><path class="skip" d="M1300 741 H1415"/><path class="skip" d="M1300 925 H1415"/>
+  <path class="main" d="M1300 1117 H1415"/>
+  <text x="1572" y="1242" class="small">Physical layout folds speaker into batch:</text><text x="1572" y="1267" class="small">[B &#215; J &#215; F &#215; T] &#8596; [BJ &#215; F &#215; T]</text>
+
+  <!-- Reconstruction decoder -->
+  <rect class="group" x="1805" y="207" width="1300" height="1118" rx="20" fill="#f8fdf9"/>
+  <text x="2455" y="246" class="groupTitle">Multi-scale Reconstruction Decoder</text>
+  <text x="2455" y="273" class="small">stage order is D&#8320; &#8594; D&#8321; &#8594; D&#8322; &#8594; D&#8323;; processing inside each stage is shown left-to-right</text>
+
+  <!-- Decoder D3 -->
+  <rect class="dec" x="1840" y="300" width="1225" height="144" rx="13"/>
+  <text x="1872" y="327" class="boxTitle" text-anchor="start">D&#8323; &#183; T<tspan baseline-shift="sub" font-size="12">p</tspan></text>
+  <rect class="chip" x="1870" y="344" width="132" height="61" rx="8"/><text x="1936" y="370" class="body">Upsample</text><text x="1936" y="391" class="small">nearest &#215;2</text>
+  <rect class="chip" x="2030" y="344" width="164" height="61" rx="8"/><text x="2112" y="370" class="body">Concat S&#8320;</text><text x="2112" y="391" class="small">256 channels</text>
+  <rect class="chip" x="2222" y="344" width="166" height="61" rx="8"/><text x="2305" y="370" class="body">Fusion 1&#215;1</text><text x="2305" y="391" class="small">256 &#8594; 128</text>
+  <rect class="chip" x="2416" y="334" width="390" height="81" rx="8"/><text x="2611" y="366" class="body">[Global &#8594; Local &#8594; Cross-Speaker] &#215;3</text><text x="2611" y="394" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>]</text>
+  <rect class="parr" x="2834" y="344" width="192" height="61" rx="9"/><text x="2930" y="370" class="boxTitle">PARR&#8323;</text><text x="2930" y="392" class="small">H&#8323; &#183; main</text>
+  <path class="main" d="M2002 375 H2030"/><path class="main" d="M2194 375 H2222"/><path class="main" d="M2388 375 H2416"/><path class="main" d="M2806 375 H2834"/>
+
+  <!-- Decoder D2 -->
+  <rect class="dec" x="1840" y="484" width="1225" height="144" rx="13"/>
+  <text x="1872" y="511" class="boxTitle" text-anchor="start">D&#8322; &#183; T<tspan baseline-shift="sub" font-size="12">p</tspan>/2</text>
+  <rect class="chip" x="1870" y="528" width="132" height="61" rx="8"/><text x="1936" y="554" class="body">Upsample</text><text x="1936" y="575" class="small">nearest &#215;2</text>
+  <rect class="chip" x="2030" y="528" width="164" height="61" rx="8"/><text x="2112" y="554" class="body">Concat S&#8321;</text><text x="2112" y="575" class="small">256 channels</text>
+  <rect class="chip" x="2222" y="528" width="166" height="61" rx="8"/><text x="2305" y="554" class="body">Fusion 1&#215;1</text><text x="2305" y="575" class="small">256 &#8594; 128</text>
+  <rect class="chip" x="2416" y="518" width="390" height="81" rx="8"/><text x="2611" y="550" class="body">[Global &#8594; Local &#8594; Cross-Speaker] &#215;3</text><text x="2611" y="578" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/2]</text>
+  <rect class="parr" x="2834" y="528" width="192" height="61" rx="9"/><text x="2930" y="554" class="boxTitle">PARR&#8322;</text><text x="2930" y="576" class="small">H&#8322; &#183; aux</text>
+  <path class="main" d="M2002 559 H2030"/><path class="main" d="M2194 559 H2222"/><path class="main" d="M2388 559 H2416"/><path class="main" d="M2806 559 H2834"/>
+
+  <!-- Decoder D1 -->
+  <rect class="dec" x="1840" y="668" width="1225" height="144" rx="13"/>
+  <text x="1872" y="695" class="boxTitle" text-anchor="start">D&#8321; &#183; T<tspan baseline-shift="sub" font-size="12">p</tspan>/4</text>
+  <rect class="chip" x="1870" y="712" width="132" height="61" rx="8"/><text x="1936" y="738" class="body">Upsample</text><text x="1936" y="759" class="small">nearest &#215;2</text>
+  <rect class="chip" x="2030" y="712" width="164" height="61" rx="8"/><text x="2112" y="738" class="body">Concat S&#8322;</text><text x="2112" y="759" class="small">256 channels</text>
+  <rect class="chip" x="2222" y="712" width="166" height="61" rx="8"/><text x="2305" y="738" class="body">Fusion 1&#215;1</text><text x="2305" y="759" class="small">256 &#8594; 128</text>
+  <rect class="chip" x="2416" y="702" width="390" height="81" rx="8"/><text x="2611" y="734" class="body">[Global &#8594; Local &#8594; Cross-Speaker] &#215;3</text><text x="2611" y="762" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/4]</text>
+  <rect class="parr" x="2834" y="712" width="192" height="61" rx="9"/><text x="2930" y="738" class="boxTitle">PARR&#8321;</text><text x="2930" y="760" class="small">H&#8321; &#183; aux</text>
+  <path class="main" d="M2002 743 H2030"/><path class="main" d="M2194 743 H2222"/><path class="main" d="M2388 743 H2416"/><path class="main" d="M2806 743 H2834"/>
+
+  <!-- Decoder D0 -->
+  <rect class="dec" x="1840" y="852" width="1225" height="144" rx="13"/>
+  <text x="1872" y="879" class="boxTitle" text-anchor="start">D&#8320; &#183; T<tspan baseline-shift="sub" font-size="12">p</tspan>/8</text>
+  <rect class="chip" x="1870" y="896" width="132" height="61" rx="8"/><text x="1936" y="922" class="body">Upsample</text><text x="1936" y="943" class="small">nearest &#215;2</text>
+  <rect class="chip" x="2030" y="896" width="164" height="61" rx="8"/><text x="2112" y="922" class="body">Concat S&#8323;</text><text x="2112" y="943" class="small">256 channels</text>
+  <rect class="chip" x="2222" y="896" width="166" height="61" rx="8"/><text x="2305" y="922" class="body">Fusion 1&#215;1</text><text x="2305" y="943" class="small">256 &#8594; 128</text>
+  <rect class="chip" x="2416" y="886" width="390" height="81" rx="8"/><text x="2611" y="918" class="body">[Global &#8594; Local &#8594; Cross-Speaker] &#215;3</text><text x="2611" y="946" class="dim">[BJ &#215; 128 &#215; T<tspan baseline-shift="sub" font-size="11">p</tspan>/8]</text>
+  <rect class="parr" x="2834" y="896" width="192" height="61" rx="9"/><text x="2930" y="922" class="boxTitle">PARR&#8320;</text><text x="2930" y="944" class="small">H&#8320; &#183; aux</text>
+  <path class="main" d="M2002 927 H2030"/><path class="main" d="M2194 927 H2222"/><path class="main" d="M2388 927 H2416"/><path class="main" d="M2806 927 H2834"/>
+
+  <!-- Skip inputs and bottom-up decoder transitions -->
+  <path class="skip" d="M1730 369 H1790 V355 H2030"/><path class="skip" d="M1730 553 H1790 V539 H2030"/><path class="skip" d="M1730 737 H1790 V723 H2030"/><path class="skip" d="M1730 921 H1790 V907 H2030"/>
+  <path class="main" d="M1730 1117 H1818 V976 H1936 V957"/>
+  <path class="main" d="M3026 927 H3078 V828 H1936 V773"/>
+  <path class="main" d="M3026 743 H3078 V644 H1936 V589"/>
+  <path class="main" d="M3026 559 H3078 V460 H1936 V405"/>
+  <rect class="parr" x="1905" y="1050" width="1135" height="138" rx="14"/>
+  <text x="2472" y="1083" class="boxTitle">PARR placement rule</text>
+  <text x="2472" y="1114" class="body">Apply after all Global / Local / Cross-Speaker blocks of every decoder stage.</text>
+  <text x="2472" y="1144" class="body">The refined H<tspan baseline-shift="sub" font-size="12">r</tspan>&#8242; feeds the next stage; shared temporal core + stage-specific Norm<tspan baseline-shift="sub" font-size="12">r</tspan> and &#947;<tspan baseline-shift="sub" font-size="12">r</tspan>.</text>
+  <text x="2472" y="1174" class="dim">r = 0,1,2,3; T<tspan baseline-shift="sub" font-size="11">r</tspan> = {T<tspan baseline-shift="sub" font-size="11">p</tspan>/8, T<tspan baseline-shift="sub" font-size="11">p</tspan>/4, T<tspan baseline-shift="sub" font-size="11">p</tspan>/2, T<tspan baseline-shift="sub" font-size="11">p</tspan>}</text>
+  <text x="2455" y="1260" class="small">Auxiliary feature list captured before D&#8320;...D&#8323;: {SS(h<tspan baseline-shift="sub" font-size="10">B</tspan>), H&#8320;, H&#8321;, H&#8322;}</text>
+
+  <!-- Back-end -->
+  <rect class="group" x="3138" y="207" width="630" height="1118" rx="20" fill="#fff9fb"/>
+  <text x="3453" y="246" class="groupTitle">Waveform back-end</text>
+  <rect class="out" x="3190" y="300" width="526" height="152" rx="13"/>
+  <text x="3453" y="332" class="boxTitle">Main Output Layer</text>
+  <text x="3453" y="363" class="body">crop T<tspan baseline-shift="sub" font-size="12">p</tspan> &#8594; T&#8320;; Linear 128&#8594;512</text>
+  <text x="3453" y="390" class="body">GLU 512&#8594;256; Linear 256&#8594;256</text>
+  <text x="3453" y="423" class="dim">code layout: [J &#215; B &#215; 256 &#215; T&#8320;]</text>
+  <rect class="out" x="3190" y="510" width="526" height="128" rx="13"/>
+  <text x="3453" y="542" class="boxTitle">Audio Decoder &#215;J</text>
+  <text x="3453" y="573" class="body">ConvTranspose1D 256 &#8594; 1</text>
+  <text x="3453" y="601" class="body">kernel 32, stride 8; shared over speakers</text>
+  <rect class="out" x="3190" y="696" width="526" height="130" rx="13"/>
+  <text x="3453" y="728" class="boxTitle">Separated waveforms</text>
+  <polyline points="3250,777 3265,760 3280,790 3295,751 3310,784 3325,757 3340,793 3355,748 3370,781 3385,759 3400,790" fill="none" stroke="#d24b4b" stroke-width="3"/>
+  <polyline points="3500,777 3515,754 3530,786 3545,762 3560,793 3575,750 3590,782 3605,758 3620,790 3635,754 3650,778" fill="none" stroke="#3178cf" stroke-width="3"/>
+  <text x="3453" y="811" class="dim">J &#215; [B &#215; N] &#8596; [B &#215; J &#215; N]</text>
+  <rect class="out" x="3190" y="895" width="526" height="222" rx="13"/>
+  <text x="3453" y="929" class="boxTitle">Four scale-specific auxiliary heads</text>
+  <text x="3453" y="962" class="body">nearest upsample feature &#8594; T&#8320;</text>
+  <text x="3453" y="991" class="body">OutputLayer(masking=True)</text>
+  <text x="3453" y="1020" class="body">ReLU mask &#8857; encoded mixture</text>
+  <text x="3453" y="1049" class="body">scale-specific AudioDecoder</text>
+  <text x="3453" y="1083" class="dim">4 &#215; (J &#215; [B &#215; N])</text>
+  <path class="main" d="M3026 375 H3190"/><path class="main" d="M3453 452 V510"/><path class="main" d="M3453 638 V696"/>
+  <path class="aux" d="M1780 1117 H1790 V1285 H3115 V940 H3190"/>
+  <path class="aux" d="M3026 927 H3100 V980 H3190"/>
+  <path class="aux" d="M3026 743 H3085 V1020 H3190"/>
+  <path class="aux" d="M3026 559 H3070 V1060 H3190"/>
+  <text x="3453" y="1180" class="small">Main training loss: time-domain PIT SI-SNR</text>
+  <text x="3453" y="1210" class="small">Auxiliary loss: multi-scale STFT-magnitude PIT SI-SNR</text>
+  <text x="3453" y="1247" class="formula">L = (1 - &#945;)L<tspan baseline-shift="sub" font-size="13">time</tspan> + &#945;(1/4)&#8721;L<tspan baseline-shift="sub" font-size="13">aux,r</tspan></text>
+
+  <!-- B. PARR detail -->
+  <rect class="panel" x="38" y="1424" width="2715" height="690" rx="24"/>
+  <text x="72" y="1468" class="panelTitle">B. PARR<tspan baseline-shift="sub" font-size="18">r</tspan> exact forward path</text>
+  <text x="72" y="1497" class="small" text-anchor="start">The temporal core is shared across all stages and speaker branches; only Norm<tspan baseline-shift="sub" font-size="10">r</tspan> and &#947;<tspan baseline-shift="sub" font-size="10">r</tspan> are stage-specific.</text>
+  <rect class="shared" x="430" y="1525" width="1880" height="505" rx="18"/>
+  <text x="1370" y="1556" class="small">shared parameters &#952;</text>
+
+  <rect class="dec" x="80" y="1690" width="190" height="95" rx="11"/><text x="175" y="1724" class="boxTitle">H<tspan baseline-shift="sub" font-size="13">r</tspan></text><text x="175" y="1755" class="dim">[BJ&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">r</tspan>]</text>
+  <rect class="split" x="305" y="1678" width="170" height="118" rx="11"/><text x="390" y="1712" class="boxTitle">Norm<tspan baseline-shift="sub" font-size="13">r</tspan></text><text x="390" y="1741" class="body">Channel LN</text><text x="390" y="1770" class="small">stage-specific</text>
+  <rect class="chip" x="515" y="1678" width="220" height="118" rx="11"/><text x="625" y="1712" class="boxTitle">Bottleneck B&#952;</text><text x="625" y="1741" class="body">Conv1&#215;1 128&#8594;64</text><text x="625" y="1770" class="small">PReLU &#8594; Channel LN; Z<tspan baseline-shift="sub" font-size="10">r</tspan></text>
+  <rect class="enc" x="785" y="1578" width="220" height="106" rx="11"/><text x="895" y="1612" class="boxTitle">Conv-U branch U</text><text x="895" y="1641" class="small">LN&#8594;PWConv&#8594;SiLU</text><text x="895" y="1665" class="small">&#8594;DWConv K3 + residual</text>
+  <rect class="enc" x="785" y="1788" width="220" height="106" rx="11"/><text x="895" y="1822" class="boxTitle">Conv-U branch V</text><text x="895" y="1851" class="small">LN&#8594;PWConv&#8594;SiLU</text><text x="895" y="1875" class="small">&#8594;DWConv K3 + residual</text>
+  <rect class="enc" x="1050" y="1788" width="315" height="106" rx="11"/><text x="1207" y="1822" class="boxTitle">Dense Dilated FSMN</text><text x="1207" y="1851" class="small">four memory states; dense links</text><text x="1207" y="1875" class="small">dilations {1, 2, 4, 8}</text>
+  <circle class="op" cx="1420" cy="1717" r="27"/><text x="1420" y="1724" class="boxTitle">&#8857;</text>
+  <rect class="split" x="1480" y="1664" width="225" height="106" rx="11"/><text x="1592" y="1698" class="boxTitle">Correction Norm</text><text x="1592" y="1727" class="body">R<tspan baseline-shift="sub" font-size="11">r</tspan> = Norm(U<tspan baseline-shift="sub" font-size="11">r</tspan> &#8857; M<tspan baseline-shift="sub" font-size="11">r</tspan>)</text><text x="1592" y="1753" class="small">pure correction</text>
+  <rect class="parr" x="1745" y="1810" width="280" height="116" rx="11"/><text x="1885" y="1843" class="boxTitle">Channel-Temporal G&#952;</text><text x="1885" y="1873" class="body">A<tspan baseline-shift="sub" font-size="11">r</tspan> = sigmoid(Conv1&#215;1[Z<tspan baseline-shift="sub" font-size="11">r</tspan>,R<tspan baseline-shift="sub" font-size="11">r</tspan>])</text><text x="1885" y="1903" class="dim">[BJ &#215; 64 &#215; T<tspan baseline-shift="sub" font-size="11">r</tspan>]; zero-init</text>
+  <circle class="op" cx="1810" cy="1664" r="27"/><text x="1810" y="1671" class="boxTitle">&#8857;</text>
+  <rect class="chip" x="1865" y="1598" width="210" height="104" rx="11"/><text x="1970" y="1631" class="boxTitle">Output W&#952;</text><text x="1970" y="1660" class="body">Conv1&#215;1 64&#8594;128</text><text x="1970" y="1687" class="small">&#916;<tspan baseline-shift="sub" font-size="10">r</tspan> = W&#952;(A<tspan baseline-shift="sub" font-size="10">r</tspan>&#8857;R<tspan baseline-shift="sub" font-size="10">r</tspan>)</text>
+  <circle class="op" cx="2150" cy="1650" r="27"/><text x="2150" y="1657" class="boxTitle">&#215;</text><text x="2150" y="1700" class="small">&#947;<tspan baseline-shift="sub" font-size="10">r</tspan>, init 0</text>
+  <circle class="op" cx="2350" cy="1737" r="29"/><text x="2350" y="1745" class="boxTitle">+</text>
+  <rect class="dec" x="2450" y="1690" width="230" height="95" rx="11"/><text x="2565" y="1724" class="boxTitle">H<tspan baseline-shift="sub" font-size="13">r</tspan>&#8242;</text><text x="2565" y="1755" class="dim">[BJ&#215;128&#215;T<tspan baseline-shift="sub" font-size="11">r</tspan>]</text>
+
+  <path class="main" d="M270 1737 H305"/><path class="main" d="M475 1737 H515"/>
+  <path class="main" d="M735 1737 H755 V1631 H785"/><path class="main" d="M735 1737 H755 V1841 H785"/>
+  <path class="main" d="M1005 1841 H1050"/><path class="main" d="M1005 1631 H1420 V1690"/><path class="main" d="M1365 1841 H1420 V1744"/>
+  <path class="main" d="M1447 1717 H1480"/><path class="main" d="M1705 1717 H1783 V1664"/><path class="main" d="M1837 1664 H1865"/>
+  <path class="ctrl" d="M735 1765 H1718 V1868 H1745"/><path class="ctrl" d="M1592 1770 V1788 H1718 V1868 H1745"/><path class="ctrl" d="M1885 1810 V1735 H1810 V1691"/>
+  <path class="main" d="M2075 1650 H2123"/><path class="main" d="M2177 1650 H2290 V1737 H2321"/>
+  <path class="mainPlain" d="M175 1785 V2010 H2290 V1737"/><path class="main" d="M2379 1737 H2450"/>
+  <text x="1370" y="1984" class="formula">H<tspan baseline-shift="sub" font-size="13">r</tspan>&#8242; = H<tspan baseline-shift="sub" font-size="13">r</tspan> + &#947;<tspan baseline-shift="sub" font-size="13">r</tspan> W&#952;(A<tspan baseline-shift="sub" font-size="13">r</tspan> &#8857; R<tspan baseline-shift="sub" font-size="13">r</tspan>)</text>
+  <text x="1370" y="2071" class="small">No Z<tspan baseline-shift="sub" font-size="10">r</tspan> + R<tspan baseline-shift="sub" font-size="10">r</tspan> inside the temporal core; exact identity at initialization follows from &#947;<tspan baseline-shift="sub" font-size="10">r</tspan> = 0.</text>
+
+  <!-- C. Legend and provenance -->
+  <rect class="panel" x="2785" y="1424" width="1017" height="690" rx="24"/>
+  <text x="2820" y="1468" class="panelTitle">C. Reading guide</text>
+  <path class="main" d="M2840 1535 H2960"/><text x="3070" y="1542" class="body">main data flow</text>
+  <path class="skip" d="M2840 1588 H2960"/><text x="3070" y="1595" class="body">encoder skip connection</text>
+  <path class="aux" d="M2840 1641 H2960"/><text x="3070" y="1648" class="body">auxiliary supervision path</text>
+  <path class="ctrl" d="M2840 1694 H2960"/><text x="3070" y="1701" class="body">controller dependency</text>
+  <rect class="enc" x="2828" y="1750" width="125" height="44" rx="8"/><text x="2890" y="1778" class="small">encoder</text>
+  <rect class="split" x="2970" y="1750" width="125" height="44" rx="8"/><text x="3032" y="1778" class="small">split/norm</text>
+  <rect class="dec" x="3112" y="1750" width="125" height="44" rx="8"/><text x="3174" y="1778" class="small">decoder</text>
+  <rect class="parr" x="3254" y="1750" width="125" height="44" rx="8"/><text x="3316" y="1778" class="small">PARR</text>
+  <rect class="out" x="3396" y="1750" width="125" height="44" rx="8"/><text x="3458" y="1778" class="small">waveform</text>
+  <text x="2825" y="1860" class="boxTitle" text-anchor="start">Dimension symbols</text>
+  <text x="2825" y="1896" class="body" text-anchor="start">B: batch size &#183; J: speakers (=2) &#183; N: waveform samples</text>
+  <text x="2825" y="1927" class="body" text-anchor="start">F: separator channels (=128) &#183; T&#8320;: encoder frames</text>
+  <text x="2825" y="1958" class="body" text-anchor="start">T<tspan baseline-shift="sub" font-size="12">p</tspan>: padded frames &#183; r: decoder stage index</text>
+  <text x="2825" y="2020" class="boxTitle" text-anchor="start">Implementation sources</text>
+  <text x="2825" y="2052" class="small" text-anchor="start">model.py &#183; modules/module.py &#183; configs.yaml</text>
+  <text x="2825" y="2082" class="small" text-anchor="start">SepReformer-PARR Libri2Mix 16K workspace implementation</text>
+</svg>
