@@ -116,6 +116,32 @@ class RuntimeRegressionTests(unittest.TestCase):
     def test_resume_two_workers(self):
         check_resume(2)
 
+    def test_paired_metadata_is_saved_and_mismatch_is_rejected(self):
+        from utils.paired_initialization import validate_resume_initialization
+
+        model = torch.nn.Linear(2, 2)
+        model.paired_initialization_metadata = {
+            "format_version": 1,
+            "kind": "sepreformer_paired_initialization",
+            "seed": 0,
+            "baseline_model": "baseline",
+            "initialization_sha256": "init-a",
+            "shared_config_sha256": "config-a",
+        }
+        optimizer = torch.optim.AdamW(model.parameters())
+        with tempfile.TemporaryDirectory() as directory:
+            save_latest_checkpoint(1, 1, 1, model, optimizer, directory)
+            path = Path(directory) / "latest.pth"
+            checkpoint = torch.load(path, map_location="cpu")
+            self.assertEqual(
+                checkpoint["paired_initialization_metadata"],
+                model.paired_initialization_metadata,
+            )
+            validate_resume_initialization(checkpoint, model, path)
+            checkpoint["paired_initialization_metadata"]["initialization_sha256"] = "init-b"
+            with self.assertRaisesRegex(RuntimeError, "different paired initialization"):
+                validate_resume_initialization(checkpoint, model, path)
+
     def test_natural_gamma_opening(self):
         from models.SepReformer_PARR_Libri2Mix_16K.modules.module import ProgressiveAdaptiveResidualRefinement
         torch.manual_seed(11)
@@ -137,6 +163,63 @@ class RuntimeRegressionTests(unittest.TestCase):
             self.assertEqual(bool(torch.count_nonzero(grad)), step == 1)
             optimizer.step()
         self.assertTrue(all(scale.detach().abs() > 0 for scale in parr.stage_scales))
+
+    def test_paired_initialization_and_full_model_identity(self):
+        import importlib
+        import yaml
+        from utils.paired_initialization import apply_paired_initialization
+        from utils.util_system import set_random_seed
+
+        names = (
+            "SepReformer_Base_Libri2Mix_16K",
+            "SepReformer_PARR_Libri2Mix_16K",
+        )
+        configs = []
+        for name in names:
+            with open(Path("models") / name / "configs.yaml") as stream:
+                configs.append(yaml.safe_load(stream)["config"])
+
+        with tempfile.TemporaryDirectory() as directory:
+            models = []
+            metadata = []
+            for name, config in zip(names, configs):
+                config["paired_initialization"]["directory"] = directory
+                set_random_seed(**config["experiment"])
+                model_class = importlib.import_module(f"models.{name}.model").Model
+                model = model_class(**config["model"])
+                metadata.append(
+                    apply_paired_initialization(model, name, config, Path.cwd())
+                )
+                models.append(model.eval())
+
+            baseline_state, parr_state = (model.state_dict() for model in models)
+            common_keys = set(baseline_state) & set(parr_state)
+            self.assertEqual(common_keys, set(baseline_state))
+            for key in common_keys:
+                torch.testing.assert_close(
+                    baseline_state[key], parr_state[key], rtol=0, atol=0
+                )
+            self.assertEqual(
+                metadata[0]["initialization_sha256"],
+                metadata[1]["initialization_sha256"],
+            )
+            self.assertGreater(metadata[1]["model_only_tensor_count"], 0)
+
+            waveform = torch.randn(1, 2048)
+            with torch.inference_mode():
+                baseline_output = models[0](waveform)
+                parr_output = models[1](waveform)
+            baseline_tensors = baseline_output[0] + [
+                tensor for stage in baseline_output[1] for tensor in stage
+            ]
+            parr_tensors = parr_output[0] + [
+                tensor for stage in parr_output[1] for tensor in stage
+            ]
+            self.assertEqual(len(baseline_tensors), len(parr_tensors))
+            for baseline_tensor, parr_tensor in zip(baseline_tensors, parr_tensors):
+                torch.testing.assert_close(
+                    baseline_tensor, parr_tensor, rtol=0, atol=0
+                )
 
     def test_comparison_rejects_missing_keys(self):
         from utils.compare_separation_metrics import compare
@@ -201,15 +284,18 @@ class RuntimeRegressionTests(unittest.TestCase):
 
     def test_evaluation_does_not_construct_optimizer(self):
         from types import SimpleNamespace
+        from utils.run_contract import make_run_contract
         from models.SepReformer_PARR_Libri2Mix_16K.engine import Engine
         with tempfile.TemporaryDirectory() as directory:
             weights = Path(directory) / "log" / "scratch_weights"
             model = torch.nn.Linear(4, 4)
+            config = {"check_computations": {"dummy_len": 8, "metrics": []},
+                      "engine": {"clip_norm": 5}}
+            model.run_contract = make_run_contract(model, config)
             optimizer = torch.optim.AdamW(model.parameters())
             save_checkpoint_per_best(float("inf"), 1, 1, 1, model, optimizer, str(weights))
             engine = Engine(SimpleNamespace(engine_mode="test", out_wav_dir=None),
-                            {"check_computations": {"dummy_len": 8, "metrics": []},
-                             "engine": {"clip_norm": 5}}, model, {}, [], [], [],
+                            config, model, {}, [], [], [],
                             (0,), torch.device("cpu"), work_dir=directory)
             self.assertFalse(hasattr(engine, "main_optimizer"))
             self.assertEqual(engine.start_epoch, 2)

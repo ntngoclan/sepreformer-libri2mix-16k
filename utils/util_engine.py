@@ -120,6 +120,11 @@ def _checkpoint_payload(
         checkpoint['scheduler_state_dicts'] = [
             scheduler.state_dict() for scheduler in schedulers
         ]
+    paired_metadata = getattr(model, 'paired_initialization_metadata', None)
+    if paired_metadata is not None:
+        checkpoint['paired_initialization_metadata'] = copy.deepcopy(paired_metadata)
+    if hasattr(model, 'run_contract'):
+        checkpoint['run_contract'] = copy.deepcopy(model.run_contract)
     return checkpoint
 
 

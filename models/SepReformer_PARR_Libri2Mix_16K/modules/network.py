@@ -84,6 +84,7 @@ class MultiHeadAttention(torch.nn.Module):
         self.linear_v = torch.nn.Linear(in_channels, in_channels)
         self.linear_out = torch.nn.Linear(in_channels, in_channels)
         self.attn = None
+        self.store_attention = False
         self.dropout = torch.nn.Dropout(p=dropout_rate)
         self.Layer_scale = LayerScale(dims=3, input_size=in_channels, Layer_scale_init=Layer_scale_init)
     
@@ -115,10 +116,11 @@ class MultiHeadAttention(torch.nn.Module):
             mask = mask.unsqueeze(1).eq(0)  # (batch, 1, time1, time2)
             min_value = float(numpy.finfo(torch.tensor(0, dtype=scores.dtype).numpy().dtype).min)
             scores = scores.masked_fill(mask, min_value)
-            self.attn = torch.softmax(scores, dim=-1).masked_fill(mask, 0.0)  # (batch, head, time1, time2)
+            attn = torch.softmax(scores, dim=-1).masked_fill(mask, 0.0)  # (batch, head, time1, time2)
         else:
-            self.attn = torch.softmax(scores, dim=-1)  # (batch, head, time1, time2)
-        p_attn = self.dropout(self.attn)
+            attn = torch.softmax(scores, dim=-1)  # (batch, head, time1, time2)
+        self.attn = attn.detach() if self.store_attention else None
+        p_attn = self.dropout(attn)
         x = torch.matmul(p_attn, v)  # (batch, head, time1, d_k)
         x = x.transpose(1, 2).contiguous().view(n_batch, -1, self.h * self.d_k)  # (batch, time1, d_model)
         return self.Layer_scale(self.dropout(self.linear_out(x)))  # (batch, time1, d_model)

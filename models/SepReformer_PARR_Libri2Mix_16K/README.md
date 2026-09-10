@@ -10,8 +10,8 @@ For decoder stage `r`, the implementation is:
 ```text
 N_r       = ChannelLayerNorm_r(H_r)
 Z_r       = ChannelLayerNorm(PReLU(Conv1x1(N_r)))
-U_r       = ConvU_theta(Z_r)
-V_r       = ConvU_theta(Z_r)
+U_r       = ConvU_theta_u(Z_r)
+V_r       = ConvU_theta_v(Z_r)
 M_r       = DenseDilatedFSMN_theta(V_r)
 R_r       = ChannelLayerNorm(U_r * M_r)
 A_r       = sigmoid(Conv1x1_theta(concat(Z_r, R_r)))
@@ -25,6 +25,10 @@ normalizations and `gamma_r` are stage-specific. Every `gamma_r` is initialized
 to zero, making PARR an exact identity mapping at initialization. The controller
 weights and bias are also zero-initialized, giving a neutral initial gate of
 `0.5`.
+
+The two Conv-U branches have separate weights inside the shared core. The
+output projection has a bias, so the gate modulates the input-dependent
+correction; it is not a calibrated error probability or a complete off switch.
 
 The unchanged SepReformer training objectives are used: time-domain PIT SI-SNR
 for the final output and STFT-magnitude PIT supervision for four auxiliary
@@ -51,8 +55,14 @@ Put model-initialization checkpoints in `log/pretrain_weights`. Their compatible
 model tensors are loaded, but optimizer state and epoch are intentionally not
 restored. Checkpoints in `log/scratch_weights` resume the same architecture with
 model, optimizer, scheduler, and epoch state; all newly saved checkpoints go
-there. Legacy checkpoints without scheduler state remain loadable and emit a
-warning.
+there. New checkpoints include a full run contract (configuration, architecture,
+source fingerprints and pipeline revision). Resume/evaluation reject missing or
+incompatible contracts. Old weights may be used explicitly as model-only
+initialization with paired initialization disabled, not as a controlled resume.
+
+The length-aware spectral loss and validation policy changed in this revision.
+Start fresh baseline/PARR runs together; see
+[fix details and verification](../../docs/PARR_FIXES_2026_09_10.md).
 
 Do not use the author's WSJ0-2Mix 8 kHz checkpoint as the reported Libri2Mix
 16 kHz baseline. Its waveform front-end has different dimensions, so it can only
@@ -63,6 +73,8 @@ training condition.
 
 ```bash
 python -m models.SepReformer_PARR_Libri2Mix_16K.smoke_test_parr
+python -m scripts.runtime_checks
+python -m scripts.test_parr_fixes
 ```
 
 The smoke test checks dimensions, neutral controller initialization, exact

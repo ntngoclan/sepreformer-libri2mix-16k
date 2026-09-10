@@ -39,7 +39,7 @@ class STFTBase(torch.nn.Module):
     NOTE:
         1) Recommend sqrt_hann window with 2**N frame length, because it 
            could achieve perfect reconstruction after overlap-add
-        2) Now haven't consider padding problems yet
+        2) Uncentered frames; at least one frame for short audio.
     """
     device: torch.device
     frame_length: int
@@ -98,39 +98,22 @@ class STFT(STFTBase):
             raise RuntimeError(
                 "{} expect 2D/3D tensor, but got {:d}D signal".format(
                     self.__name__, x.dim()))
-        # if N x S, reshape N x 1 x S
-        N_frame = ceil(x.shape[-1] / self.frame_shift)
-        len_padded = N_frame * self.frame_shift
-        if x.dim() == 2:
-            
-            x = torch.cat((x, torch.zeros(x.shape[0], len_padded-x.shape[-1], device=x.device)), dim=-1)
-            x = torch.unsqueeze(x, 1)
-            # N x 2F x T
-            c = torch.nn.functional.conv1d(x, self.K, stride=self.frame_shift, padding=0)
-            # N x F x T
-            r, i = torch.chunk(c, 2, dim=1)
-        else:        
-            x = torch.cat(
-                (
-                    x,
-                    torch.zeros(
-                        x.shape[0],
-                        x.shape[1],
-                        len_padded - x.shape[-1],
-                        device=x.device,
-                        dtype=x.dtype,
-                    ),
-                ),
-                dim=-1,
-            )
-            N, C, S = x.shape
-            x = x.reshape(N * C, 1, S)
-            # NC x 2F x T
-            c = torch.nn.functional.conv1d(x, self.K, stride=self.frame_shift, padding=0)
-            # N x C x 2F x T
-            c = c.reshape(N, C, -1, c.shape[-1])
-            # N x C x F x T
-            r, i = torch.chunk(c, 2, dim=2)
+        if x.shape[-1] == 0:
+            raise ValueError("STFT requires non-empty audio.")
+        # Preserve the original uncentered frame convention, with one frame
+        # minimum for short inputs. The loss masks frames by each true length.
+        len_padded = max(self.frame_length, ceil(x.shape[-1] / self.frame_shift) * self.frame_shift)
+        x = torch.nn.functional.pad(x, (0, len_padded - x.shape[-1]))
+        multi_channel = x.dim() == 3
+        if multi_channel:
+            batch, channels, samples = x.shape
+            x = x.reshape(batch * channels, 1, samples)
+        else:
+            x = x.unsqueeze(1)
+        c = torch.nn.functional.conv1d(x, self.K, stride=self.frame_shift)
+        if multi_channel:
+            c = c.reshape(batch, channels, -1, c.shape[-1])
+        r, i = torch.chunk(c, 2, dim=2 if multi_channel else 1)
 
         if cplx:
             return r, i
@@ -171,36 +154,55 @@ class PIT_SISNR_mag:
 
         return f"<{class_name}({', '.join(field_strs + post_init_reprs)})>"
     
+    def _center(self, signals, input_sizes):
+        signals = torch.stack([value.to(self.device) for value in signals], dim=1)
+        lengths = input_sizes.to(device=self.device)
+        if (lengths.shape != (signals.shape[0],) or torch.any(lengths != lengths.long())
+                or torch.any(lengths <= 0) or torch.any(lengths > signals.shape[-1])):
+            raise ValueError("Invalid true lengths for spectral PIT.")
+        lengths = lengths.long()
+        mask = length_mask(signals[:, 0], lengths).unsqueeze(1)
+        return masked_zero_mean(signals, mask), lengths
+
+    def prepare_targets(self, targets, input_sizes):
+        """Batch-local reference cache; reusable across all auxiliary heads."""
+        centered, lengths = self._center(targets, input_sizes)
+        r, i = self.stft[0](centered, cplx=True)
+        return centered, r.square() + i.square(), lengths
+
     def __call__(self, **kwargs):
-        estims = kwargs['estims']
-        idx = kwargs['idx']
-        input_sizes = kwargs["input_sizes"].to(self.device)
-        targets = [t.to(self.device) for t in kwargs["target_attr"]]
-        
-        def _STFT_Mag_SDR_loss(permute, eps=1.0e-12):
-            loss_for_permute = []
-            for s, t in enumerate(permute):
-                mix = estims[s]
-                src = targets[t]
-                mask = length_mask(mix, input_sizes)
-                mix_zm = masked_zero_mean(mix, mask)
-                src_zm = masked_zero_mean(src, mask)
-                if self.scale_inv:
-                    scale = torch.sum(mix_zm * src_zm, dim=-1, keepdim=True) / (l2norm(src_zm, keepdim=True)**2 + eps)
-                    src_zm = torch.clamp(scale, min=1e-2) * src_zm
-                mix_zm = self.stft[idx](mix_zm.to(self.device))[0]
-                src_zm = self.stft[idx](src_zm.to(self.device))[0]
-                if self.mel_opt:
-                    mix_zm = self.mel_fb(mix_zm)
-                    src_zm = self.mel_fb(src_zm)
-                utt_loss = -20 * torch.log10(eps + l2norm(l2norm((src_zm))) / (l2norm(l2norm(mix_zm - src_zm)) + eps))                
-                loss_for_permute.append(utt_loss)
-            return sum(loss_for_permute)
-        
-        pscore = torch.stack([_STFT_Mag_SDR_loss(p) for p in permutations(range(self.num_spks))])
-        min_perutt, _ = torch.min(pscore, dim=0)
-        num_utts = input_sizes.shape[0]
-        return torch.sum(min_perutt) / num_utts
+        eps = 1.0e-12
+        estimates, lengths = self._center(kwargs['estims'], kwargs['input_sizes'])
+        prepared = kwargs.get('prepared_targets')
+        if prepared is None:
+            prepared = self.prepare_targets(kwargs['target_attr'], kwargs['input_sizes'])
+        targets, target_power, target_lengths = prepared
+        if estimates.shape != targets.shape or not torch.equal(lengths, target_lengths):
+            raise ValueError("Spectral target cache does not match this batch.")
+        r, i = self.stft[kwargs['idx']](estimates, cplx=True)
+        estimate_mag = (r.square() + i.square() + 1e-10).sqrt()
+        # [B, estimate speaker, reference speaker]. Scale BEFORE adding the
+        # magnitude epsilon, exactly as waveform scaling before linear STFT.
+        if self.scale_inv:
+            scale = torch.einsum('bet,brt->ber', estimates, targets)
+            scale = (scale / (targets.square().sum(-1).unsqueeze(1) + eps)).clamp_min(1e-2)
+        else:
+            scale = estimates.new_ones(estimates.shape[0], self.num_spks, self.num_spks)
+        reference_mag = (target_power.unsqueeze(1) * scale[..., None, None].square() + 1e-10).sqrt()
+        if self.mel_opt:
+            estimate_mag = self.mel_fb(estimate_mag)
+            reference_mag = self.mel_fb(reference_mag)
+        padded_lengths = ((lengths + self.frame_shift - 1) // self.frame_shift * self.frame_shift).clamp_min(self.frame_length)
+        frame_counts = (padded_lengths - self.frame_length) // self.frame_shift + 1
+        frame_mask = (torch.arange(estimate_mag.shape[-1], device=self.device)[None, :] < frame_counts[:, None])
+        frame_mask = frame_mask[:, None, None, None, :]
+        reference_mag = reference_mag * frame_mask
+        error = (estimate_mag.unsqueeze(2) * frame_mask) - reference_mag
+        cost = -20 * torch.log10(eps + torch.linalg.vector_norm(reference_mag, dim=(-2, -1))
+                                / (torch.linalg.vector_norm(error, dim=(-2, -1)) + eps))
+        scores = torch.stack([sum(cost[:, speaker, target] for speaker, target in enumerate(perm))
+                              for perm in permutations(range(self.num_spks))])
+        return scores.min(dim=0).values.mean()
 
 @logger_wraps()
 @dataclass(slots=True)

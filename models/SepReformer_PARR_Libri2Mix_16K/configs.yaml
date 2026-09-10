@@ -4,6 +4,12 @@ config:
   experiment:
     seed: 0
     deterministic: true
+  paired_initialization:
+    enabled: true
+    directory: initializations
+    baseline_model: SepReformer_Base_Libri2Mix_16K
+    candidate_model: SepReformer_PARR_Libri2Mix_16K
+    allowed_extra_prefix: separator.parr.
   dataset:
     sampling_rate: 16000
     max_len: 64000             # 4 seconds at 16 kHz

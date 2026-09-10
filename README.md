@@ -88,6 +88,14 @@ Train the matching PARR model with the same 16 kHz data and optimization setup:
 python run.py --model SepReformer_PARR_Libri2Mix_16K --engine-mode train
 ```
 
+For a controlled baseline/PARR comparison, either training command automatically
+creates or loads `initializations/sepreformer_base_libri2mix_16k_seed_0000.pth`.
+Both models therefore start with bit-identical values for every shared tensor;
+only `separator.parr.*` is initialized additionally. The initialization SHA-256
+and shared-config SHA-256 are embedded in every training checkpoint. Keep the
+`initializations/` directory with the checkpoints and do not put a trained
+baseline checkpoint in `log/pretrain_weights` for this from-scratch comparison.
+
 For a reproducible single-NVIDIA-L40 environment, preflight checks, persistent
 checkpoint policy, native setup and Docker commands, see
 [`docs/L40_DEPLOYMENT.md`](docs/L40_DEPLOYMENT.md).

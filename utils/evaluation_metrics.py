@@ -46,6 +46,8 @@ HIGHER_IS_BETTER_METRICS = (
 
 LOWER_IS_BETTER_METRICS = ("mixture_consistency_error_db",)
 EFFICIENCY_METRICS = ("latency_seconds", "rtf", "peak_vram_mb")
+METRIC_PROTOCOL = "separation-v2-unit-si-snr"
+SILENT_ESTIMATE_FLOOR_DB = -80.0
 
 
 def _package_version(distribution):
@@ -73,7 +75,11 @@ def _as_mono_float64(signal, length=None):
     if array.ndim != 1:
         raise ValueError(f"Expected mono 1-D audio, got shape {array.shape}.")
     if length is not None:
+        if int(length) <= 0 or array.size < int(length):
+            raise ValueError("Requested audio length must be positive and available in every signal.")
         array = array[: int(length)]
+    if array.size < 2:
+        raise ValueError("Metrics require at least two audio samples.")
     if not np.isfinite(array).all():
         raise ValueError("Audio contains NaN or infinity.")
     return array
@@ -83,12 +89,34 @@ def _zero_mean(signal):
     return signal - np.mean(signal)
 
 
+def _unit_centered(signal):
+    """Normalize before squaring, preserving very small nonzero signal gains."""
+    signal = _as_mono_float64(signal)
+    peak = np.max(np.abs(signal))
+    if peak == 0:
+        return None
+    signal = _zero_mean(signal / peak)
+    norm = np.linalg.norm(signal)
+    return None if norm == 0 else signal / norm
+
+
 def si_snr(estimate, reference, eps=1.0e-8):
-    """Zero-mean scale-invariant SNR in dB."""
-    estimate = _zero_mean(_as_mono_float64(estimate))
-    reference = _zero_mean(_as_mono_float64(reference))
-    scale = np.dot(estimate, reference) / (np.dot(reference, reference) + eps)
-    target = scale * reference
+    """Unit-normalized zero-mean SI-SNR; constant estimate gets a -80 dB floor.
+
+    A constant reference is undefined and rejected, not silently excluded.
+    Epsilon acts on unit energy so near-silent nonconstant audio keeps its gain
+    invariance. This is metric protocol v2; do not mix v1 and v2 CSV scores.
+    """
+    estimate = _as_mono_float64(estimate)
+    reference = _as_mono_float64(reference)
+    if estimate.shape != reference.shape:
+        raise ValueError("Estimate/reference lengths differ.")
+    estimate, reference = _unit_centered(estimate), _unit_centered(reference)
+    if reference is None:
+        raise ValueError("SI-SNR is undefined for a silent/constant reference.")
+    if estimate is None:
+        return SILENT_ESTIMATE_FLOOR_DB
+    target = np.dot(estimate, reference) * reference
     noise = estimate - target
     return float(10.0 * np.log10((np.dot(target, target) + eps) / (np.dot(noise, noise) + eps)))
 
@@ -133,7 +161,9 @@ def _bootstrap_interval(values, samples, confidence, random_generator):
     values = values[np.isfinite(values)]
     if not values.size:
         return float("nan"), float("nan")
-    if values.size == 1 or samples <= 0:
+    if samples <= 0:
+        return float("nan"), float("nan")
+    if values.size == 1:
         value = float(values[0])
         return value, value
     bootstrap_means = np.empty(samples, dtype=np.float64)
@@ -167,6 +197,10 @@ class SeparationMetricsEvaluator:
         self.compute_estoi = bool(compute_estoi)
         self.bootstrap_samples = int(bootstrap_samples)
         self.confidence = float(confidence)
+        if not 0 < self.confidence < 1:
+            raise ValueError("confidence must lie strictly between 0 and 1.")
+        if self.bootstrap_samples < 0:
+            raise ValueError("bootstrap_samples must be nonnegative (zero disables CI).")
         self.bootstrap_seed = int(bootstrap_seed)
         self.rows = []
         self.failures = []
@@ -206,6 +240,13 @@ class SeparationMetricsEvaluator:
         estimates = [_as_mono_float64(value, length) for value in estimates]
         if len(references) != self.num_spks or len(estimates) != self.num_spks:
             raise ValueError("Unexpected number of speakers during evaluation.")
+        for index, reference in enumerate(references):
+            if _unit_centered(reference) is None:
+                raise ValueError(f"{key}: source {index} is silent/constant; SI-SNR reference is undefined.")
+        for index, estimate in enumerate(estimates):
+            if _unit_centered(estimate) is None:
+                self.failures.append({"key": str(key), "metric": "si_snr", "estimate_index": index,
+                                      "error": "Silent/constant estimate retained with -80 dB floor."})
 
         permutation, separated_si_snr = best_si_snr_permutation(estimates, references)
         estimates = [estimates[index] for index in permutation]
@@ -269,6 +310,7 @@ class SeparationMetricsEvaluator:
         duration_seconds = length / self.sampling_rate
         row = {
             "key": str(key),
+            "metric_protocol": METRIC_PROTOCOL,
             "num_samples": length,
             "duration_seconds": duration_seconds,
             "permutation": "-".join(map(str, permutation)),
@@ -316,8 +358,11 @@ class SeparationMetricsEvaluator:
                 "median": float(np.median(finite)) if finite.size else float("nan"),
                 "q25": float(np.quantile(finite, 0.25)) if finite.size else float("nan"),
                 "q75": float(np.quantile(finite, 0.75)) if finite.size else float("nan"),
-                "ci95_low": low,
-                "ci95_high": high,
+                "ci_low": low,
+                "ci_high": high,
+                # Compatibility aliases are only meaningful at 95% confidence.
+                "ci95_low": low if self.confidence == 0.95 else float("nan"),
+                "ci95_high": high if self.confidence == 0.95 else float("nan"),
                 "n_valid": int(finite.size),
             }
         return {
@@ -327,6 +372,8 @@ class SeparationMetricsEvaluator:
             "model_parameters": None if model_parameters is None else int(model_parameters),
             "metadata": metadata or {},
             "assignment_metric": "si_snr",
+            "metric_protocol": METRIC_PROTOCOL,
+            "silent_estimate_floor_db": SILENT_ESTIMATE_FLOOR_DB,
             "metric_implementations": {
                 "si_snr_and_snr": "internal NumPy reference implementation",
                 "bss_eval": f"mir-eval {_package_version('mir-eval')}",

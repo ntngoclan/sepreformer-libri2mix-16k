@@ -13,6 +13,7 @@ from .evaluation_metrics import (
     HIGHER_IS_BETTER_METRICS,
     LOWER_IS_BETTER_METRICS,
     json_safe,
+    _bootstrap_interval,
 )
 
 
@@ -26,16 +27,7 @@ def _load_rows(path):
 
 
 def _paired_bootstrap(deltas, samples, confidence, random_generator):
-    if deltas.size == 1 or samples <= 0:
-        value = float(np.mean(deltas))
-        return value, value
-    means = np.empty(samples, dtype=np.float64)
-    for index in range(samples):
-        means[index] = np.mean(
-            random_generator.choice(deltas, size=deltas.size, replace=True)
-        )
-    alpha = (1.0 - confidence) / 2.0
-    return tuple(np.quantile(means, [alpha, 1.0 - alpha]).tolist())
+    return _bootstrap_interval(deltas, samples, confidence, random_generator)
 
 
 def _benjamini_hochberg(p_values):
@@ -57,6 +49,8 @@ def _benjamini_hochberg(p_values):
 
 def compare(baseline_path, candidate_path, bootstrap_samples, confidence, seed,
             allow_subset=False, expected_count=None):
+    if not 0 < confidence < 1 or bootstrap_samples < 0:
+        raise ValueError("Require 0 < confidence < 1 and bootstrap_samples >= 0.")
     baseline = _load_rows(baseline_path)
     candidate = _load_rows(candidate_path)
     if not allow_subset and set(baseline) != set(candidate):
@@ -68,6 +62,8 @@ def compare(baseline_path, candidate_path, bootstrap_samples, confidence, seed,
     if not common_keys:
         raise ValueError("The two CSV files have no common utterance keys.")
     for key in common_keys:
+        if baseline[key].get("metric_protocol") != candidate[key].get("metric_protocol"):
+            raise ValueError(f"Metric protocol differs for key {key}; re-evaluate both checkpoints.")
         if baseline[key].get("num_samples") != candidate[key].get("num_samples"):
             raise ValueError(f"Audio duration differs for key {key}.")
 
@@ -107,8 +103,10 @@ def compare(baseline_path, candidate_path, bootstrap_samples, confidence, seed,
                 "baseline_mean": float(np.mean(values[:, 0])),
                 "candidate_mean": float(np.mean(values[:, 1])),
                 "delta_candidate_minus_baseline": float(np.mean(deltas)),
-                "delta_ci95_low": low,
-                "delta_ci95_high": high,
+                "delta_ci_low": low,
+                "delta_ci_high": high,
+                "delta_ci95_low": low if confidence == 0.95 else float("nan"),
+                "delta_ci95_high": high if confidence == 0.95 else float("nan"),
                 "improved_fraction": float(np.mean(signed_improvement > 0.0)),
                 "wilcoxon_p": p_value,
             }
@@ -140,7 +138,7 @@ def _write_markdown(result, output_path):
         lines.append(
             "| {metric} | {n_pairs} | {n_excluded} | {baseline_mean:.4f} | {candidate_mean:.4f} | "
             "{delta_candidate_minus_baseline:+.4f} | "
-            "[{delta_ci95_low:+.4f}, {delta_ci95_high:+.4f}] | "
+            "[{delta_ci_low:+.4f}, {delta_ci_high:+.4f}] | "
             "{improved_fraction:.1%} | {wilcoxon_fdr_bh_p:.4g} |".format(**item)
         )
     with open(output_path, "w", encoding="utf-8") as stream:

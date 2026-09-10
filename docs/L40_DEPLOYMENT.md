@@ -9,6 +9,7 @@ changed by the deployment files.
 Keep the following outside ephemeral container storage:
 
 - `data/Libri2Mix.zip`, or extracted `data/Libri2Mix/`;
+- `initializations/` (the common epoch-0 baseline state used by both runs);
 - `models/SepReformer_Base_Libri2Mix_16K/log/`;
 - `models/SepReformer_PARR_Libri2Mix_16K/log/`;
 - `run_logs/` and the evaluation output directories.
@@ -27,7 +28,16 @@ workers are required. CUDA numerical nondeterminism can still prevent bitwise
 reproduction. Old checkpoints without RNG states cannot provide this guarantee.
 
 Both files are written atomically. Legacy `epoch.XXXX.pth` checkpoints remain
-loadable when neither of the new files exists.
+selectable for evaluation when neither of the new files exists; resuming a
+controlled paired run requires the initialization metadata described below.
+
+For the controlled one-seed comparison, both train commands automatically use
+the same baseline epoch-0 initialization. Every common state-dict tensor must
+match exactly; only `separator.parr.*` may be additional in PARR, whose residual
+stage scales must start at exactly zero. The initialization file and shared
+configuration are fingerprinted in each checkpoint. A legacy scratch checkpoint
+without these fingerprints is deliberately rejected, as is a checkpoint in
+`log/pretrain_weights`, because either would invalidate this from-scratch pair.
 
 ## Native setup
 
@@ -94,7 +104,7 @@ docker build -f Dockerfile.l40 -t sepreformer:l40 .
 Prepare persistent directories on the host:
 
 ```bash
-mkdir -p persistent/parr_log persistent/run_logs
+mkdir -p persistent/initializations persistent/parr_log persistent/run_logs
 ```
 
 Run preflight with the ZIP mounted read-only:
@@ -102,6 +112,7 @@ Run preflight with the ZIP mounted read-only:
 ```bash
 docker run --rm --gpus 'device=0' --shm-size=8g \
   -v "$PWD/data/Libri2Mix.zip:/workspace/SepReformer/data/Libri2Mix.zip:ro" \
+  -v "$PWD/persistent/initializations:/workspace/SepReformer/initializations" \
   -v "$PWD/persistent/parr_log:/workspace/SepReformer/models/SepReformer_PARR_Libri2Mix_16K/log" \
   -v "$PWD/persistent/run_logs:/workspace/SepReformer/run_logs" \
   sepreformer:l40 \
@@ -117,6 +128,7 @@ Train with the same persistent mounts:
 ```bash
 docker run --rm --gpus 'device=0' --shm-size=8g \
   -v "$PWD/data/Libri2Mix:/workspace/SepReformer/data/Libri2Mix:ro" \
+  -v "$PWD/persistent/initializations:/workspace/SepReformer/initializations" \
   -v "$PWD/persistent/parr_log:/workspace/SepReformer/models/SepReformer_PARR_Libri2Mix_16K/log" \
   -v "$PWD/persistent/run_logs:/workspace/SepReformer/run_logs" \
   sepreformer:l40 \
@@ -137,4 +149,4 @@ Do not delete the instance until `latest.pth`, `best.pth`, the training log and
 5. Begin with the configured batch size 2. Do not increase only one model's
    batch size when making the scientific comparison.
 6. Verify `latest.pth` and `best.pth` after the first completed epoch.
-7. Back up the whole model `log/` directory regularly.
+7. Back up the whole model `log/` directory and `initializations/` regularly.

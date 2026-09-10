@@ -66,7 +66,7 @@ def get_dataloaders(args, dataset_config, loader_config):
         generator.manual_seed(loader_seed)
         dataloaders[partition] = DataLoader(
             dataset,
-            batch_size=1 if partition == "test" else loader_config["batch_size"],
+            batch_size=loader_config["batch_size"] if partition == "train" else 1,
             shuffle=partition == "train",
             pin_memory=loader_config["pin_memory"],
             num_workers=loader_config["num_workers"],

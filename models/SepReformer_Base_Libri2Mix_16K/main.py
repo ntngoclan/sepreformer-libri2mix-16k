@@ -5,6 +5,7 @@ from loguru import logger
 
 from utils import util_implement, util_system
 from utils.decorators import logger_wraps
+from utils.paired_initialization import apply_paired_initialization
 
 from .dataset import get_dataloaders
 from .engine import Engine
@@ -22,6 +23,16 @@ def main(args):
     util_system.set_random_seed(**config.get("experiment", {"seed": 0, "deterministic": True}))
     dataloaders = get_dataloaders(args, config["dataset"], config["dataloader"])
     model = Model(**config["model"])
+    if args.engine_mode == "train":
+        apply_paired_initialization(
+            model,
+            model_name=os.path.basename(MODEL_DIR),
+            config=config,
+            workspace_root=os.path.dirname(os.path.dirname(MODEL_DIR)),
+        )
+        # The helper baseline may need to be constructed when PARR runs first.
+        # Reset all training RNGs so file creation/existence cannot affect training.
+        util_system.set_random_seed(**config["experiment"])
 
     gpuid = tuple(map(int, config["engine"]["gpuid"].split(",")))
     if not torch.cuda.is_available():

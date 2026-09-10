@@ -8,6 +8,11 @@ from tqdm import tqdm
 from utils import util_engine, functions
 from utils.evaluation_metrics import SeparationMetricsEvaluator
 from utils.runtime_state import restore_runtime_state
+from utils.run_contract import make_run_contract, validate_run_contract, file_sha256
+from utils.paired_initialization import (
+    paired_initialization_enabled,
+    validate_resume_initialization,
+)
 from utils.decorators import *
 from torch.utils.tensorboard import SummaryWriter
 
@@ -77,6 +82,7 @@ def _load_model_initialization(checkpoint_path, model, location):
 def _load_training_resume(checkpoint_path, model, optimizer, schedulers, location):
     """Restore a compatible baseline training run, including optimizer and epoch."""
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    validate_resume_initialization(checkpoint, model, checkpoint_path)
     model.load_state_dict(checkpoint["model_state_dict"], strict=True)
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     scheduler_states = checkpoint.get("scheduler_state_dicts")
@@ -111,6 +117,8 @@ class Engine(object):
         self.gpuid = gpuid
         self.device = device
         self.model = model.to(self.device)
+        self.model.run_contract = make_run_contract(self.model, config)
+        self.evaluation_provenance = {}
         self.dataloaders = dataloaders # self.dataloaders['train'] or ['valid'] or ['test']
         self.work_dir = work_dir or os.path.dirname(os.path.abspath(__file__))
         self.resume_runtime_state = None
@@ -137,6 +145,13 @@ class Engine(object):
             if selected is None:
                 raise FileNotFoundError("Evaluation requires a trained checkpoint.")
             checkpoint = torch.load(selected, map_location="cpu")
+            validate_run_contract(checkpoint, self.model.run_contract, selected, evaluation=True)
+            self.evaluation_provenance = {
+                "checkpoint": os.path.basename(selected),
+                "checkpoint_sha256": file_sha256(selected),
+                "run_contract": checkpoint["run_contract"],
+                "paired_initialization_metadata": checkpoint.get("paired_initialization_metadata"),
+            }
             self.model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
             self.start_epoch = int(checkpoint.get("epoch", 0)) + 1
             self.best_valid_loss = float("inf")
@@ -151,6 +166,12 @@ class Engine(object):
                 location=self.device,
             )
         elif pretrain_checkpoints:
+            if paired_initialization_enabled(self.config):
+                raise RuntimeError(
+                    "Paired initialization is enabled, but log/pretrain_weights contains a "
+                    "checkpoint. Move it aside: a trained/pretrained model must not override "
+                    "the controlled epoch-0 state."
+                )
             _load_model_initialization(
                 pretrain_checkpoints[-1], self.model, location=self.device
             )
@@ -188,23 +209,26 @@ class Engine(object):
     def _train(self, dataloader, epoch):
         self.model.train()
         tot_loss_freq = [0 for _ in range(self.model.num_stages)]
-        tot_loss_time, num_batch = 0, 0
+        tot_loss_time, num_batch, num_utts = 0, 0, 0
         pbar = tqdm(total=len(dataloader), unit='batches', bar_format='{l_bar}{bar:25}{r_bar}{bar:-10b}', colour="YELLOW", dynamic_ncols=True)
         for input_sizes, mixture, src, _ in dataloader:
             nnet_input = mixture
             nnet_input = functions.apply_cmvn(nnet_input) if self.config['engine']['mvn'] else nnet_input
             num_batch += 1
+            batch_utts = len(input_sizes)
+            num_utts += batch_utts
             pbar.update(1)
             nnet_input = nnet_input.to(self.device)
             self.main_optimizer.zero_grad()
-            estim_src, estim_src_bn = torch.nn.parallel.data_parallel(self.model, nnet_input, device_ids=self.gpuid)
-            cur_loss_s_bn = 0
+            estim_src, estim_src_bn = torch.nn.parallel.data_parallel(self.model, nnet_input, device_ids=self.gpuid,
+                    module_kwargs={"input_sizes": input_sizes})
+            prepared_targets = self.PIT_SISNR_mag_loss.prepare_targets(src, input_sizes)
             cur_loss_s_bn = []
             for idx, estim_src_value in enumerate(estim_src_bn):
-                cur_loss_s_bn.append(self.PIT_SISNR_mag_loss(estims=estim_src_value, idx=idx, input_sizes=input_sizes, target_attr=src))
-                tot_loss_freq[idx] += cur_loss_s_bn[idx].item() / (self.config['model']['num_spks'])
+                cur_loss_s_bn.append(self.PIT_SISNR_mag_loss(estims=estim_src_value, idx=idx, input_sizes=input_sizes, target_attr=src, prepared_targets=prepared_targets))
+                tot_loss_freq[idx] += batch_utts * cur_loss_s_bn[idx].item() / (self.config['model']['num_spks'])
             cur_loss_s = self.PIT_SISNR_time_loss(estims=estim_src, input_sizes=input_sizes, target_attr=src)
-            tot_loss_time += cur_loss_s.item() / self.config['model']['num_spks']
+            tot_loss_time += batch_utts * cur_loss_s.item() / self.config['model']['num_spks']
             alpha = 0.4 * 0.8**(1+(epoch-101)//5) if epoch > 100 else 0.4
             cur_loss = (1-alpha) * cur_loss_s + alpha * sum(cur_loss_s_bn) / len(cur_loss_s_bn)
             cur_loss = cur_loss / self.config['model']['num_spks']
@@ -216,20 +240,20 @@ class Engine(object):
             self.main_optimizer.step()
             # PyTorch requires optimizer.step() before scheduler.step(). The
             # shifted lambda preserves the original LR used by each update.
-            if epoch == 1:
+            if self.warmup_scheduler.last_epoch < self.warmup_scheduler.warmup_steps:
                 self.warmup_scheduler.step()
-            dict_loss = {"T_Loss": tot_loss_time / num_batch}
-            dict_loss.update({'F_Loss_' + str(idx): loss / num_batch for idx, loss in enumerate(tot_loss_freq)})
+            dict_loss = {"T_Loss": tot_loss_time / num_utts}
+            dict_loss.update({'F_Loss_' + str(idx): loss / num_utts for idx, loss in enumerate(tot_loss_freq)})
             pbar.set_postfix(dict_loss)
         pbar.close()
         tot_loss_freq = sum(tot_loss_freq) / len(tot_loss_freq)
-        return tot_loss_time / num_batch, tot_loss_freq / num_batch, num_batch
+        return tot_loss_time / num_utts, tot_loss_freq / num_utts, num_batch
     
     @logger_wraps()
     def _validate(self, dataloader):
         self.model.eval()
         tot_loss_freq = [0 for _ in range(self.model.num_stages)]
-        tot_loss_time, num_batch = 0, 0
+        tot_loss_time, num_batch, num_utts = 0, 0, 0
         pbar = tqdm(total=len(dataloader), unit='batches', bar_format='{l_bar}{bar:5}{r_bar}{bar:-10b}', colour="RED", dynamic_ncols=True)
         with torch.inference_mode():
             for input_sizes, mixture, src, _ in dataloader:
@@ -237,22 +261,26 @@ class Engine(object):
                 nnet_input = functions.apply_cmvn(nnet_input) if self.config['engine']['mvn'] else nnet_input
                 nnet_input = nnet_input.to(self.device)
                 num_batch += 1
+                batch_utts = len(input_sizes)
+                num_utts += batch_utts
                 pbar.update(1)
-                estim_src, estim_src_bn = torch.nn.parallel.data_parallel(self.model, nnet_input, device_ids=self.gpuid)
+                estim_src, estim_src_bn = torch.nn.parallel.data_parallel(self.model, nnet_input, device_ids=self.gpuid,
+                    module_kwargs={"input_sizes": input_sizes})
+                prepared_targets = self.PIT_SISNR_mag_loss.prepare_targets(src, input_sizes)
                 cur_loss_s_bn = []
                 for idx, estim_src_value in enumerate(estim_src_bn):
-                    cur_loss_s_bn.append(self.PIT_SISNR_mag_loss(estims=estim_src_value, idx=idx, input_sizes=input_sizes, target_attr=src))
-                    tot_loss_freq[idx] += cur_loss_s_bn[idx].item() / (self.config['model']['num_spks'])
+                    cur_loss_s_bn.append(self.PIT_SISNR_mag_loss(estims=estim_src_value, idx=idx, input_sizes=input_sizes, target_attr=src, prepared_targets=prepared_targets))
+                    tot_loss_freq[idx] += batch_utts * cur_loss_s_bn[idx].item() / (self.config['model']['num_spks'])
                 cur_loss_s_SDR = self.PIT_SISNR_time_loss(estims=estim_src, input_sizes=input_sizes, target_attr=src)
                 if not all(torch.isfinite(value) for value in [cur_loss_s_SDR, *cur_loss_s_bn]):
                     raise FloatingPointError(f"Non-finite validation loss at batch {num_batch}")
-                tot_loss_time += cur_loss_s_SDR.item() / self.config['model']['num_spks']
-                dict_loss = {"T_Loss":tot_loss_time / num_batch}
-                dict_loss.update({'F_Loss_' + str(idx): loss / num_batch for idx, loss in enumerate(tot_loss_freq)})
+                tot_loss_time += batch_utts * cur_loss_s_SDR.item() / self.config['model']['num_spks']
+                dict_loss = {"T_Loss":tot_loss_time / num_utts}
+                dict_loss.update({'F_Loss_' + str(idx): loss / num_utts for idx, loss in enumerate(tot_loss_freq)})
                 pbar.set_postfix(dict_loss)
         pbar.close()
         tot_loss_freq = sum(tot_loss_freq) / len(tot_loss_freq)
-        return tot_loss_time / num_batch, tot_loss_freq / num_batch, num_batch
+        return tot_loss_time / num_utts, tot_loss_freq / num_utts, num_batch
     
     @logger_wraps()
     def _test(self, dataloader, wav_dir=None, evaluation_tag="latest"):
@@ -339,6 +367,8 @@ class Engine(object):
             output_directory,
             model_parameters=sum(parameter.numel() for parameter in self.model.parameters()),
             metadata={
+                **self.evaluation_provenance,
+                "evaluation_config": self.config,
                 "device": torch.cuda.get_device_name(self.device),
                 "torch_version": torch.__version__,
                 "cuda_version": torch.version.cuda,
@@ -414,7 +444,9 @@ class Engine(object):
                     valid_start_time = time.time()
                     valid_loss_src_time, valid_loss_src_freq, valid_num_batch = self._validate(self.dataloaders['valid'])
                     valid_end_time = time.time()
-                    if epoch > self.config['engine']['start_scheduling']: self.main_scheduler.step(valid_loss_src_time)
+                    if (epoch > self.config['engine']['start_scheduling']
+                            and self.warmup_scheduler.last_epoch >= self.warmup_scheduler.warmup_steps):
+                        self.main_scheduler.step(valid_loss_src_time)
                     logger.info(f"[TRAIN] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {train_loss_src_time:.4f} dB | Loss_f = {train_loss_src_freq:.4f} dB | Speed = ({train_end_time - train_start_time:.2f}s/{train_num_batch:d})")
                     logger.info(f"[VALID] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {valid_loss_src_time:.4f} dB | Loss_f = {valid_loss_src_freq:.4f} dB | Speed = ({valid_end_time - valid_start_time:.2f}s/{valid_num_batch:d})")
                     if epoch in self.config['engine']['test_epochs']:

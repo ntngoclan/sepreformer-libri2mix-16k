@@ -12,3 +12,5 @@ figures/
 data/Libri2Mix.zip
 data/Libri2Mix/
 run_logs/
+initializations/*.pth
+initializations/*.pth.*.tmp

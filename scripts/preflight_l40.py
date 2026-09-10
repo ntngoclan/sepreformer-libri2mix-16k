@@ -172,6 +172,61 @@ def check_gpu(require_l40):
     }
 
 
+def check_paired_model_identity(base_config, parr_config, samples=2048):
+    """Verify the complete baseline and zero-gamma PARR outputs are bit-identical."""
+    from models.SepReformer_Base_Libri2Mix_16K.model import Model as BaselineModel
+    from models.SepReformer_PARR_Libri2Mix_16K.model import Model as ParrModel
+    from utils.paired_initialization import apply_paired_initialization
+    from utils.util_system import set_random_seed
+
+    names = ("SepReformer_Base_Libri2Mix_16K", "SepReformer_PARR_Libri2Mix_16K")
+    model_classes = (BaselineModel, ParrModel)
+    configs = (base_config, parr_config)
+    models, metadata = [], []
+    for name, model_class, config in zip(names, model_classes, configs):
+        set_random_seed(**config["experiment"])
+        model = model_class(**config["model"])
+        metadata.append(
+            apply_paired_initialization(
+                model, model_name=name, config=config, workspace_root=ROOT
+            )
+        )
+        models.append(model.cuda().eval())
+
+    if metadata[0]["initialization_sha256"] != metadata[1]["initialization_sha256"]:
+        raise RuntimeError("Baseline and PARR report different epoch-0 model-state hashes.")
+    set_random_seed(**base_config["experiment"])
+    waveform = torch.randn(1, int(samples), device="cuda")
+    with torch.inference_mode():
+        outputs = [model(waveform) for model in models]
+    tensors = [
+        output[0] + [tensor for stage in output[1] for tensor in stage]
+        for output in outputs
+    ]
+    if len(tensors[0]) != len(tensors[1]):
+        raise RuntimeError("Baseline and PARR return different numbers of waveform tensors.")
+    for index, (baseline_tensor, parr_tensor) in enumerate(zip(*tensors)):
+        try:
+            torch.testing.assert_close(baseline_tensor, parr_tensor, rtol=0, atol=0)
+        except AssertionError as error:
+            raise RuntimeError(
+                f"Paired epoch-0 output tensor {index} is not bit-identical."
+            ) from error
+    result = {
+        "identity": "bit_exact",
+        "probe_samples": int(samples),
+        "output_tensor_count": len(tensors[0]),
+        "initialization_sha256": metadata[0]["initialization_sha256"],
+        "initialization_file_sha256": metadata[0]["initialization_file_sha256"],
+        "shared_config_sha256": metadata[0]["shared_config_sha256"],
+        "baseline_common_tensors": metadata[0]["common_tensor_count"],
+        "parr_only_tensors": metadata[1]["model_only_tensor_count"],
+    }
+    del outputs, tensors, waveform, models
+    torch.cuda.empty_cache()
+    return result
+
+
 def check_forward_backward(model_name, config, forward_samples, batch_size):
     if model_name == "SepReformer_PARR_Libri2Mix_16K":
         from models.SepReformer_PARR_Libri2Mix_16K.model import Model
@@ -180,10 +235,22 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
     else:
         raise ValueError(f"Unsupported model name: {model_name}")
 
+    from utils.paired_initialization import apply_paired_initialization
+    from utils.util_system import set_random_seed
+
     samples = max(256, int(forward_samples))
     multiple = int(config["dataset"].get("sample_length_multiple", 1))
     samples -= samples % multiple
     batch_size = int(batch_size or config["dataloader"]["batch_size"])
+    set_random_seed(**config["experiment"])
+    model = Model(**config["model"])
+    from utils.run_contract import make_run_contract
+    model.run_contract = make_run_contract(model, config)
+    paired_metadata = apply_paired_initialization(
+        model, model_name=model_name, config=config, workspace_root=ROOT
+    )
+    # Make preflight independent of whether it created or loaded the init file.
+    set_random_seed(**config["experiment"])
     # Match Engine._train: loader targets/lengths start on CPU and the loss
     # transfers them; only the mixture is moved before the model forward.
     sources = [
@@ -194,7 +261,7 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
     input_sizes = torch.full(
         (batch_size,), samples, dtype=torch.float32
     )
-    model = Model(**config["model"]).cuda().train()
+    model = model.cuda().train()
     from utils.util_implement import CriterionFactory, OptimizerFactory, SchedulerFactory
 
     spectral_loss, time_loss, _, _ = CriterionFactory(
@@ -206,7 +273,7 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
     step_reports = []
     for step_index in range(2):
         optimizer.zero_grad(set_to_none=True)
-        estimates, auxiliaries = model(waveform)
+        estimates, auxiliaries = model(waveform, input_sizes=input_sizes)
         if len(estimates) != config["model"]["num_spks"]:
             raise RuntimeError("Unexpected number of separated outputs.")
         tensors = list(estimates) + [tensor for stage in auxiliaries for tensor in stage]
@@ -214,12 +281,14 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
             raise RuntimeError("Forward pass produced NaN or infinity.")
         if any(tensor.shape[0] != batch_size for tensor in estimates):
             raise RuntimeError("Separated output batch dimension is invalid.")
+        prepared_targets = spectral_loss.prepare_targets(sources, input_sizes)
         spectral_losses = [
             spectral_loss(
                 estims=stage,
                 idx=index,
                 input_sizes=input_sizes,
                 target_attr=sources,
+                prepared_targets=prepared_targets,
             )
             for index, stage in enumerate(auxiliaries)
         ]
@@ -285,6 +354,7 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
         "peak_vram_mib": torch.cuda.max_memory_allocated(0) / (1024 ** 2),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
         "model": model_name,
+        "paired_initialization": paired_metadata,
     }
     del estimates, auxiliaries, loss, spectral_losses, waveform_loss
     optimizer.zero_grad(set_to_none=True)
@@ -361,6 +431,7 @@ def main():
         "disk_free_gib": disk.free / (1024 ** 3),
         "parr_config": parr_block,
         "checkpoint": check_checkpoint_roundtrip(),
+        "paired_initialization": check_paired_model_identity(base_config, parr_config),
     }
     if not args.skip_data:
         report["dataset"] = check_dataset(parr_config, full=not args.quick_data)

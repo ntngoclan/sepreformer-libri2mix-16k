@@ -173,3 +173,5 @@ data/Libri2Mix/
 models/*/log/
 models/*/evaluation/
 run_logs/
+initializations/*.pth
+initializations/*.pth.*.tmp
