@@ -1,4 +1,5 @@
 import os
+import shutil
 import torch
 import time
 import soundfile as sf
@@ -8,6 +9,7 @@ from tqdm import tqdm
 from utils import util_engine, functions
 from utils.evaluation_metrics import SeparationMetricsEvaluator
 from utils.runtime_state import restore_runtime_state
+from utils.parr_diagnostics import collect_parr_diagnostics, core_gradient_norm
 from utils.run_contract import make_run_contract, validate_run_contract, file_sha256
 from utils.paired_initialization import (
     paired_initialization_enabled,
@@ -128,8 +130,10 @@ class Engine(object):
             self.main_scheduler, self.warmup_scheduler = schedulers
         
         self.pretrain_weights_path = os.path.join(self.work_dir, "log", "pretrain_weights")
-        os.makedirs(self.pretrain_weights_path, exist_ok=True)
-        self.scratch_weights_path = os.path.join(self.work_dir, "log", "scratch_weights")
+        if not getattr(args, "run_dir", None):
+            os.makedirs(self.pretrain_weights_path, exist_ok=True)
+        self.scratch_weights_path = (os.path.join(self.work_dir, "checkpoints") if getattr(args, "run_dir", None)
+                                     else os.path.join(self.work_dir, "log", "scratch_weights"))
         os.makedirs(self.scratch_weights_path, exist_ok=True)
         
         # Training checkpoints are always written to scratch_weights. A scratch
@@ -139,7 +143,13 @@ class Engine(object):
         scratch_checkpoint = _select_scratch_checkpoint(
             self.scratch_weights_path, self.engine_mode
         )
-        pretrain_checkpoints = _checkpoint_files(self.pretrain_weights_path)
+        pretrain_checkpoints = ([] if getattr(args, "run_dir", None)
+                                else _checkpoint_files(self.pretrain_weights_path))
+        if getattr(args, 'run_dir', None):
+            scratch_checkpoint = getattr(args, 'resume', None) if self.engine_mode == 'train' else getattr(args, 'checkpoint', None)
+            pretrain_checkpoints = []
+        elif getattr(args, 'checkpoint', None):
+            scratch_checkpoint = args.checkpoint
         if self.engine_mode != "train":
             selected = scratch_checkpoint or (pretrain_checkpoints[-1] if pretrain_checkpoints else None)
             if selected is None:
@@ -152,6 +162,7 @@ class Engine(object):
                 "run_contract": checkpoint["run_contract"],
                 "paired_initialization_metadata": checkpoint.get("paired_initialization_metadata"),
             }
+            self.model.paired_initialization_metadata = checkpoint.get("paired_initialization_metadata")
             self.model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
             self.start_epoch = int(checkpoint.get("epoch", 0)) + 1
             self.best_valid_loss = float("inf")
@@ -165,6 +176,22 @@ class Engine(object):
                 (self.main_scheduler, self.warmup_scheduler),
                 location=self.device,
             )
+            # Carry forward the historical best when it is available and valid
+            # at this resume boundary. Never substitute a later best for an old milestone.
+            if getattr(args, 'run_dir', None):
+                for candidate in (scratch_checkpoint, os.path.join(os.path.dirname(scratch_checkpoint), 'best.pth')):
+                    if not os.path.isfile(candidate):
+                        continue
+                    saved = torch.load(candidate, map_location='cpu')
+                    if (int(saved['epoch']) < self.start_epoch
+                            and saved.get('valid_loss') == self.best_valid_loss
+                            and saved.get('run_contract') == self.model.run_contract):
+                        shutil.copy2(candidate, os.path.join(self.checkpoint_path, 'best.pth'))
+                        break
+                else:
+                    logger.warning('Historical best is unavailable at this resume boundary; '
+                                   'best.pth will only appear after a new global validation best. '
+                                   'Use an explicit historical --checkpoint for evaluation.')
         elif pretrain_checkpoints:
             if paired_initialization_enabled(self.config):
                 raise RuntimeError(
@@ -208,6 +235,7 @@ class Engine(object):
     @logger_wraps()
     def _train(self, dataloader, epoch):
         self.model.train()
+        gradient_total = 0.0
         tot_loss_freq = [0 for _ in range(self.model.num_stages)]
         tot_loss_time, num_batch, num_utts = 0, 0, 0
         pbar = tqdm(total=len(dataloader), unit='batches', bar_format='{l_bar}{bar:25}{r_bar}{bar:-10b}', colour="YELLOW", dynamic_ncols=True)
@@ -235,6 +263,10 @@ class Engine(object):
             if not torch.isfinite(cur_loss):
                 raise FloatingPointError(f"Non-finite train loss at epoch {epoch}, batch {num_batch}")
             cur_loss.backward()
+            # Measure before gradient clipping. Only scalar reductions are retained.
+            gradient_norm = core_gradient_norm(self.model)
+            if gradient_norm is not None:
+                gradient_total += gradient_norm
             if self.config['engine']['clip_norm']:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config['engine']['clip_norm'], error_if_nonfinite=True)
             self.main_optimizer.step()
@@ -247,6 +279,7 @@ class Engine(object):
             pbar.set_postfix(dict_loss)
         pbar.close()
         tot_loss_freq = sum(tot_loss_freq) / len(tot_loss_freq)
+        self.parr_gradient_norm = gradient_total / num_batch
         return tot_loss_time / num_utts, tot_loss_freq / num_utts, num_batch
     
     @logger_wraps()
@@ -423,65 +456,79 @@ class Engine(object):
     @logger_wraps()
     def run(self):
         with torch.cuda.device(self.device):
-            writer_src = SummaryWriter(os.path.join(self.work_dir, "log/tensorboard"))
-            if "test" in self.engine_mode:
-                on_test_start = time.time()
-                test_loss_src_time_1, test_loss_src_time_2, test_num_batch = self._test(
-                    self.dataloaders['test'],
-                    self.out_wav_dir,
-                    evaluation_tag=f"checkpoint_epoch_{max(self.start_epoch - 1, 0):04d}",
-                )
-                on_test_end = time.time()
-                logger.info(f"[TEST] \n - Epoch {self.start_epoch:2d}: SI-SNRi = {test_loss_src_time_1:.4f} dB | BSS-SDRi = {test_loss_src_time_2:.4f} dB | Speed = ({on_test_end - on_test_start:.2f}s/{test_num_batch:d})")
-                logger.info(f"Testing done!")
-            else:
-                # Do not consume validation RNG again at resume.
-                valid_loss_best = self.best_valid_loss
-                for epoch in range(self.start_epoch, self.config['engine']['max_epoch'] + 1):
-                    train_start_time = time.time()
-                    train_loss_src_time, train_loss_src_freq, train_num_batch = self._train(self.dataloaders['train'], epoch)
-                    train_end_time = time.time()
-                    valid_start_time = time.time()
-                    valid_loss_src_time, valid_loss_src_freq, valid_num_batch = self._validate(self.dataloaders['valid'])
-                    valid_end_time = time.time()
-                    if (epoch > self.config['engine']['start_scheduling']
-                            and self.warmup_scheduler.last_epoch >= self.warmup_scheduler.warmup_steps):
-                        self.main_scheduler.step(valid_loss_src_time)
-                    logger.info(f"[TRAIN] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {train_loss_src_time:.4f} dB | Loss_f = {train_loss_src_freq:.4f} dB | Speed = ({train_end_time - train_start_time:.2f}s/{train_num_batch:d})")
-                    logger.info(f"[VALID] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {valid_loss_src_time:.4f} dB | Loss_f = {valid_loss_src_freq:.4f} dB | Speed = ({valid_end_time - valid_start_time:.2f}s/{valid_num_batch:d})")
-                    if epoch in self.config['engine']['test_epochs']:
-                        on_test_start = time.time()
-                        test_loss_src_time_1, test_loss_src_time_2, test_num_batch = self._test(
-                            self.dataloaders['test'], evaluation_tag=f"epoch_{epoch:04d}"
+            with SummaryWriter(os.path.join(self.work_dir, "tensorboard"), purge_step=self.start_epoch) as writer_src:
+                if "test" in self.engine_mode:
+                    on_test_start = time.time()
+                    test_loss_src_time_1, test_loss_src_time_2, test_num_batch = self._test(
+                        self.dataloaders['test'],
+                        self.out_wav_dir,
+                        evaluation_tag=f"checkpoint_epoch_{max(self.start_epoch - 1, 0):04d}",
+                    )
+                    on_test_end = time.time()
+                    logger.info(f"[TEST] \n - Epoch {self.start_epoch:2d}: SI-SNRi = {test_loss_src_time_1:.4f} dB | BSS-SDRi = {test_loss_src_time_2:.4f} dB | Speed = ({on_test_end - on_test_start:.2f}s/{test_num_batch:d})")
+                    logger.info(f"Testing done!")
+                else:
+                    # Do not consume validation RNG again at resume.
+                    valid_loss_best = self.best_valid_loss
+                    for epoch in range(self.start_epoch, self.config['engine']['max_epoch'] + 1):
+                        train_start_time = time.time()
+                        train_loss_src_time, train_loss_src_freq, train_num_batch = self._train(self.dataloaders['train'], epoch)
+                        train_end_time = time.time()
+                        valid_start_time = time.time()
+                        valid_loss_src_time, valid_loss_src_freq, valid_num_batch = self._validate(self.dataloaders['valid'])
+                        valid_end_time = time.time()
+                        if (epoch > self.config['engine']['start_scheduling']
+                                and self.warmup_scheduler.last_epoch >= self.warmup_scheduler.warmup_steps):
+                            self.main_scheduler.step(valid_loss_src_time)
+                        logger.info(f"[TRAIN] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {train_loss_src_time:.4f} dB | Loss_f = {train_loss_src_freq:.4f} dB | Speed = ({train_end_time - train_start_time:.2f}s/{train_num_batch:d})")
+                        logger.info(f"[VALID] Loss(time/mini-batch) \n - Epoch {epoch:2d}: Loss_t = {valid_loss_src_time:.4f} dB | Loss_f = {valid_loss_src_freq:.4f} dB | Speed = ({valid_end_time - valid_start_time:.2f}s/{valid_num_batch:d})")
+                        if epoch in self.config['engine']['test_epochs']:
+                            on_test_start = time.time()
+                            test_loss_src_time_1, test_loss_src_time_2, test_num_batch = self._test(
+                                self.dataloaders['test'], evaluation_tag=f"epoch_{epoch:04d}"
+                            )
+                            on_test_end = time.time()
+                            logger.info(f"[TEST] \n - Epoch {epoch:2d}: SI-SNRi = {test_loss_src_time_1:.4f} dB | BSS-SDRi = {test_loss_src_time_2:.4f} dB | Speed = ({on_test_end - on_test_start:.2f}s/{test_num_batch:d})")
+                        valid_loss_best = util_engine.save_checkpoint_per_best(
+                            valid_loss_best,
+                            valid_loss_src_time,
+                            train_loss_src_time,
+                            epoch,
+                            self.model,
+                            self.main_optimizer,
+                            self.checkpoint_path,
+                            schedulers=(self.main_scheduler, self.warmup_scheduler),
+                            dataloaders=self.dataloaders,
                         )
-                        on_test_end = time.time()
-                        logger.info(f"[TEST] \n - Epoch {epoch:2d}: SI-SNRi = {test_loss_src_time_1:.4f} dB | BSS-SDRi = {test_loss_src_time_2:.4f} dB | Speed = ({on_test_end - on_test_start:.2f}s/{test_num_batch:d})")
-                    valid_loss_best = util_engine.save_checkpoint_per_best(
-                        valid_loss_best,
-                        valid_loss_src_time,
-                        train_loss_src_time,
-                        epoch,
-                        self.model,
-                        self.main_optimizer,
-                        self.checkpoint_path,
-                        schedulers=(self.main_scheduler, self.warmup_scheduler),
-                        dataloaders=self.dataloaders,
-                    )
-                    util_engine.save_latest_checkpoint(
-                        valid_loss_src_time,
-                        train_loss_src_time,
-                        epoch,
-                        self.model,
-                        self.main_optimizer,
-                        self.checkpoint_path,
-                        schedulers=(self.main_scheduler, self.warmup_scheduler),
-                        best_valid_loss=valid_loss_best,
-                        dataloaders=self.dataloaders,
-                    )
-                    # Logging to monitoring tools (Tensorboard && Wandb)
-                    writer_src.add_scalars("Metrics", {
-                        'Loss_train_time': train_loss_src_time, 
-                        'Loss_valid_time': valid_loss_src_time}, epoch)
-                    writer_src.add_scalar("Learning Rate", self.main_optimizer.param_groups[0]['lr'], epoch)
-                    writer_src.flush()
-                logger.info(f"Training for {self.config['engine']['max_epoch']} epoches done!")
+                        util_engine.save_latest_checkpoint(
+                            valid_loss_src_time,
+                            train_loss_src_time,
+                            epoch,
+                            self.model,
+                            self.main_optimizer,
+                            self.checkpoint_path,
+                            schedulers=(self.main_scheduler, self.warmup_scheduler),
+                            best_valid_loss=valid_loss_best,
+                            dataloaders=self.dataloaders,
+                            milestone_epochs=self.config['engine'].get('checkpoint_epochs', [10, 20, 50, 100, 150, 200]),
+                        )
+                        scalars = {
+                            'loss/train_time': train_loss_src_time,
+                            'loss/valid_time': valid_loss_src_time,
+                            'loss/train_frequency': train_loss_src_freq,
+                            'loss/valid_frequency': valid_loss_src_freq,
+                            'learning_rate/main': self.main_optimizer.param_groups[0]['lr'],
+                            'duration/train_seconds': train_end_time - train_start_time,
+                            'duration/valid_seconds': valid_end_time - valid_start_time,
+                        }
+                        diagnostics = collect_parr_diagnostics(
+                            self.model, self.dataloaders['valid'].dataset, self.device,
+                            count=self.config['engine'].get('diagnostic_examples', 4),
+                            mvn=self.config['engine']['mvn'])
+                        if diagnostics:
+                            diagnostics['parr/shared_core_gradient_norm'] = self.parr_gradient_norm
+                            scalars.update(diagnostics)
+                        for tag, value in scalars.items():
+                            writer_src.add_scalar(tag, value, epoch)
+                        writer_src.flush()
+                    logger.info(f"Training for {self.config['engine']['max_epoch']} epoches done!")

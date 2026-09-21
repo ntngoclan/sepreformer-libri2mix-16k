@@ -1,5 +1,5 @@
-project: "[Project] SepReformer-PARR VN-SpeechMix 16 kHz"
-notes: "SepReformer-B with Progressive Adaptive Residual Refinement at every reconstruction decoder stage"
+project: "[Project] SepReformer-B VN-SpeechMix 16 kHz"
+notes: "VN-SpeechMix published splits, clean two-speaker, from scratch"
 config:
   experiment:
     seed: 0
@@ -7,7 +7,7 @@ config:
   paired_initialization:
     enabled: true
     directory: initializations/vnspeechmix
-    baseline_model: SepReformer_Base_Libri2Mix_16K
+    baseline_model: SepReformer_Base_VnSpeechMix_16K
     candidate_model: SepReformer_PARR_Libri2Mix_16K
     allowed_extra_prefix: separator.parr.
   dataset:
@@ -85,13 +85,6 @@ config:
           in_channels: 128
           num_mha_heads: 8
           dropout_rate: 0.05
-      parr:
-        in_channels: 128
-        bottleneck_channels: 64
-        kernel_size: 3
-        dilations: [1, 2, 4, 8]
-        dropout_rate: 0.05
-        gamma_init: 0.0
     module_output_layer:
       in_channels: 256
       out_channels: 128

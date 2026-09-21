@@ -1,5 +1,23 @@
 # SepReformer-PARR for Libri2Mix 16 kHz
 
+## VN-SpeechMix configuration
+
+`configs_vnspeechmix.yaml` pairs this PARR implementation with
+`SepReformer_Base_VnSpeechMix_16K`. It is the configuration previously kept as
+`configs_parr.yaml` in the VN-SpeechMix baseline directory.
+Run from the repository root:
+
+```bash
+python run.py --model SepReformer_PARR_Libri2Mix_16K --config models/SepReformer_PARR_Libri2Mix_16K/configs_vnspeechmix.yaml --seed 0 --run-id vn_parr_s0
+```
+
+Use the same `--config` for resume and evaluation. Shared initialization is saved
+to `initializations/vnspeechmix/sepreformer_base_vnspeechmix_16k_seed_0000.pth`
+for seed 0. This optional configuration runs PARR, not LTRR; baseline training
+continues to use its own `configs.yaml`.
+
+## Architecture
+
 This package is the Libri2Mix 16 kHz SepReformer baseline with one architectural
 change: Progressive Adaptive Residual Refinement (PARR) is applied after each of
 the four reconstruction decoder stages. No PARR block is applied at the

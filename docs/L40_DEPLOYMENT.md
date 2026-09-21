@@ -1,3 +1,5 @@
+> Current VN-SpeechMix run commands and checkpoint layout: [VNSPEECHMIX_RUNS.md](VNSPEECHMIX_RUNS.md). The fixed model/log paths and Libri2Mix counts below describe the earlier pilot.
+
 # NVIDIA L40 deployment
 
 This setup targets one visible NVIDIA L40, Python 3.10, PyTorch 2.1.2 and

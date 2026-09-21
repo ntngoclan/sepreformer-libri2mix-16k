@@ -9,7 +9,7 @@ cd "${ROOT_DIR}"
 
 "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 source "${VENV_DIR}/bin/activate"
-python -m pip install --upgrade pip setuptools wheel
+python -m pip install --upgrade pip setuptools==80.9.0 wheel
 python -m pip install \
   torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 \
   --index-url https://download.pytorch.org/whl/cu121

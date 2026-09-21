@@ -146,6 +146,7 @@ def save_latest_checkpoint(
     schedulers=None,
     best_valid_loss=None,
     dataloaders=None,
+    milestone_epochs=(),
 ):
     checkpoint = _checkpoint_payload(
         valid_loss,
@@ -158,6 +159,8 @@ def save_latest_checkpoint(
         dataloaders,
     )
     _atomic_torch_save(checkpoint, os.path.join(checkpoint_path, 'latest.pth'))
+    if epoch in milestone_epochs:
+        _atomic_torch_save(checkpoint, os.path.join(checkpoint_path, f'epoch_{epoch:04d}.pth'))
 
 
 def save_checkpoint_per_best(

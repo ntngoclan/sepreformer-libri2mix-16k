@@ -73,6 +73,19 @@ This repository uses **Git LFS (Large File Storage)** to manage pretrained model
         python run.py --model SepReformer_Base_WSJ0 --engine-mode train
         ```
 
+### VN-SpeechMix official runs
+
+A dedicated baseline package is available at
+[`models/SepReformer_Base_VnSpeechMix_16K`](models/SepReformer_Base_VnSpeechMix_16K/README.md).
+Use `python run.py --model SepReformer_Base_VnSpeechMix_16K --seed 0 --run-id vn_base_s0`.
+Its README includes the matching PARR config for paired comparisons.
+
+The default 16 kHz baseline/PARR configs now target VN-SpeechMix. See
+[VN-SpeechMix run management](docs/VNSPEECHMIX_RUNS.md) for isolated runs, explicit
+resume/evaluation, checkpoint milestones, diagnostics, provenance and backups.
+The historical Libri2Mix instructions below describe the previous data recipe;
+use the current run guide for new training and evaluation commands.
+
 ### Libri2Mix 16 kHz
 
 The repository can train directly from `data/Libri2Mix.zip`; extracting the archive is optional.

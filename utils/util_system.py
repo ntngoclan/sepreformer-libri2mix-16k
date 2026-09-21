@@ -11,6 +11,8 @@ from utils.decorators import *
 
 def set_random_seed(seed, deterministic=True):
     """Seed Python, NumPy and PyTorch consistently for an experiment run."""
+    if deterministic:
+        os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     seed = int(seed)
     random.seed(seed)
     np.random.seed(seed)

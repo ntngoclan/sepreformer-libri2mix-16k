@@ -7,7 +7,7 @@ config:
   paired_initialization:
     enabled: true
     directory: initializations/vnspeechmix
-    baseline_model: SepReformer_Base_Libri2Mix_16K
+    baseline_model: SepReformer_Base_VnSpeechMix_16K
     candidate_model: SepReformer_PARR_Libri2Mix_16K
     allowed_extra_prefix: separator.parr.
   dataset:

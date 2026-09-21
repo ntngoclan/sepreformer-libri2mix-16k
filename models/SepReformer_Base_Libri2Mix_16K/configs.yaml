@@ -1,12 +1,12 @@
-project: "[Project] SepReformer-B Libri2Mix 16 kHz"
-notes: "Clean two-speaker Libri2Mix, min mode, train-100 recipe"
+project: "[Project] SepReformer-B VN-SpeechMix 16 kHz"
+notes: "VN-SpeechMix published splits, clean two-speaker, from scratch"
 config:
   experiment:
     seed: 0
     deterministic: true
   paired_initialization:
     enabled: true
-    directory: initializations
+    directory: initializations/vnspeechmix
     baseline_model: SepReformer_Base_Libri2Mix_16K
     candidate_model: SepReformer_PARR_Libri2Mix_16K
     allowed_extra_prefix: separator.parr.
@@ -14,14 +14,16 @@ config:
     sampling_rate: 16000
     max_len: 64000             # 4 seconds at 16 kHz
     sample_length_multiple: 8  # must match the waveform encoder stride
-    archive: data/Libri2Mix.zip
-    extracted_dir: data/Libri2Mix/wav16k/min
-    archive_root: Libri2Mix/wav16k/min
+    archive: data/VnSpeechMix/rendered.zip
+    extracted_dir: data/VnSpeechMix/rendered
+    archive_root: rendered
+    manifest: data/VnSpeechMix/rendered/rendered_metadata.csv
+    expected_sizes: {train: 18000, valid: 3000, test: 5000}
     mixture_dir: mix_clean
     source_dirs: [s1, s2]
     partitions:
-      train: train-100
-      valid: dev
+      train: train
+      valid: valid
       test: test
   dataloader:
     batch_size: 2
@@ -138,6 +140,8 @@ config:
     bootstrap_seed: 0
     warmup_first_utterance: true
   engine:
+    checkpoint_epochs: [10, 20, 50, 100, 150, 200]
+    diagnostic_examples: 4
     max_epoch: 200
     gpuid: "0"
     mvn: false

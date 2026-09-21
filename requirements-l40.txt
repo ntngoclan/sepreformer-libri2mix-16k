@@ -14,3 +14,5 @@ tensorboard==2.18.0
 thop==0.1.1.post2209072238
 torchinfo==1.8.0
 tqdm==4.66.5
+
+setuptools==80.9.0

@@ -1,5 +1,8 @@
 import argparse
 import importlib
+import os
+
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 
 # Parse args
 parser = argparse.ArgumentParser(
@@ -25,8 +28,15 @@ parser.add_argument(
     type=str,
     default=None,
     help="Optional directory for separated WAV files in test_save mode")
-args = parser.parse_args()
+parser.add_argument('--run-id', help='New run name; existing training directories are rejected')
+parser.add_argument('--seed', type=int, help='Override experiment and DataLoader seed together')
+parser.add_argument('--output-dir', default='runs')
+parser.add_argument('--config', help='Optional YAML config override')
+parser.add_argument('--resume', help='Explicit full checkpoint; continue in a new run directory')
+parser.add_argument('--checkpoint', help='Explicit checkpoint for evaluation/inference')
 
 # Call target model
-main_module = importlib.import_module(f"models.{args.model}.main")
-main_module.main(args)
+if __name__ == '__main__':
+    args = parser.parse_args()
+    main_module = importlib.import_module(f"models.{args.model}.main")
+    main_module.main(args)

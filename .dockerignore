@@ -14,3 +14,11 @@ data/Libri2Mix/
 run_logs/
 initializations/*.pth
 initializations/*.pth.*.tmp
+
+# Local VN-SpeechMix, isolated verification environment, and run artifacts
+data/VnSpeechMix/
+runs/
+backups/
+.venv-runchecks/
+initializations/**/*.pth
+initializations/**/*.pth.*.tmp

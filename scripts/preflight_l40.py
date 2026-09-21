@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 import shutil
 import tempfile
 import sys
@@ -57,10 +58,10 @@ def check_dataset(config, full=True):
     report = {}
     for partition in ("train", "valid", "test"):
         dataset = Libri2MixDataset(config["dataset"], partition)
-        expected = EXPECTED_PARTITION_SIZES[partition]
+        expected = config["dataset"].get("expected_sizes", EXPECTED_PARTITION_SIZES)[partition]
         if len(dataset) != expected:
             raise RuntimeError(
-                f"Libri2Mix {partition} contains {len(dataset)} mixtures; expected {expected}."
+                f"Dataset {partition} contains {len(dataset)} mixtures; expected {expected}."
             )
         # Read raw audio before crop/stride trimming so mismatches stay visible.
         indices = range(len(dataset)) if full else [0]
