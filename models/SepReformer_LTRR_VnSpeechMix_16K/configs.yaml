@@ -1,0 +1,161 @@
+project: "[Project] SepReformer-LTRR VN-SpeechMix 16 kHz"
+notes: "Original NoGate architecture renamed LTRR; current VN-SpeechMix baseline protocol"
+config:
+  experiment:
+    seed: 0
+    deterministic: true
+  paired_initialization:
+    enabled: true
+    directory: initializations/vnspeechmix_common_v2
+    baseline_model: SepReformer_Base_VnSpeechMix_16K
+    candidate_model: SepReformer_LTRR_VnSpeechMix_16K
+    allowed_extra_prefix: ltrr.
+  dataset:
+    sampling_rate: 16000
+    max_len: 64000             # 4 seconds at 16 kHz
+    sample_length_multiple: 8  # must match the waveform encoder stride
+    archive: data/VnSpeechMix/rendered.zip
+    extracted_dir: data/VnSpeechMix/rendered
+    archive_root: rendered
+    manifest: data/VnSpeechMix/rendered/rendered_metadata.csv
+    expected_sizes: {train: 18000, valid: 3000, test: 5000}
+    mixture_dir: mix_clean
+    source_dirs: [s1, s2]
+    partitions:
+      train: train
+      valid: valid
+      test: test
+  dataloader:
+    batch_size: 2
+    seed: 0
+    pin_memory: true
+    num_workers: 12
+    drop_last: false
+  model:
+    num_stages: 4
+    num_spks: 2
+    module_audio_enc:
+      in_channels: 1
+      out_channels: 256
+      kernel_size: 32
+      stride: 8
+      groups: 1
+      bias: false
+    module_feature_projector:
+      num_channels: 256
+      in_channels: 256
+      out_channels: 128
+      kernel_size: 1
+      bias: false
+    module_separator:
+      num_stages: 4
+      relative_positional_encoding:
+        in_channels: 128
+        num_heads: 8
+        maxlen: 2000
+        embed_v: false
+      enc_stage:
+        global_blocks:
+          in_channels: 128
+          num_mha_heads: 8
+          dropout_rate: 0.05
+        local_blocks:
+          in_channels: 128
+          kernel_size: 65
+          dropout_rate: 0.05
+        down_conv_layer:
+          in_channels: 128
+          samp_kernel_size: 5
+      spk_split_stage:
+        in_channels: 128
+        num_spks: 2
+      simple_fusion:
+        out_channels: 128
+      dec_stage:
+        num_spks: 2
+        global_blocks:
+          in_channels: 128
+          num_mha_heads: 8
+          dropout_rate: 0.05
+        local_blocks:
+          in_channels: 128
+          kernel_size: 65
+          dropout_rate: 0.05
+        spk_attention:
+          in_channels: 128
+          num_mha_heads: 8
+          dropout_rate: 0.05
+    module_ltrr:
+      in_channels: 128
+      num_spks: 2
+      bottleneck_channels: 64
+      kernel_size: 3
+      dilations: [1, 2, 4, 8]
+      dropout_rate: 0.05
+      residual_scale_init: 0.05
+    module_output_layer:
+      in_channels: 256
+      out_channels: 128
+      num_spks: 2
+    module_audio_dec:
+      in_channels: 256
+      out_channels: 1
+      kernel_size: 32
+      stride: 8
+      bias: false
+  criterion:
+    name: [PIT_SISNR_mag, PIT_SISNR_time, PIT_SISNRi, PIT_SDRi]
+    PIT_SISNR_mag:
+      frame_length: 1024
+      frame_shift: 256
+      window: hann
+      num_stages: 4
+      num_spks: 2
+      scale_inv: true
+      mel_opt: false
+    PIT_SISNR_time:
+      num_spks: 2
+      scale_inv: true
+    PIT_SISNRi:
+      num_spks: 2
+      scale_inv: true
+    PIT_SDRi:
+      dump: 0
+  optimizer:
+    name: [AdamW]
+    AdamW:
+      lr: 1.0e-3
+      weight_decay: 1.0e-2
+  scheduler:
+    name: [ReduceLROnPlateau, WarmupConstantSchedule]
+    ReduceLROnPlateau:
+      mode: min
+      threshold_mode: abs
+      threshold: 1.0e-4
+      min_lr: 1.0e-10
+      factor: 0.8
+      patience: 2
+    WarmupConstantSchedule:
+      warmup_steps: 1000
+  check_computations:
+    dummy_len: 32000
+    metrics: [ptflops, thop, torchinfo]
+  evaluation:
+    compute_bss_eval: true
+    compute_pesq: true
+    compute_stoi: true
+    compute_estoi: true
+    bootstrap_samples: 2000
+    confidence: 0.95
+    bootstrap_seed: 0
+    warmup_first_utterance: true
+  engine:
+    checkpoint_epochs: [10, 20, 50, 100, 150, 200]
+    diagnostic_examples: 4
+    max_epoch: 200
+    gpuid: "0"
+    mvn: false
+    clip_norm: 5
+    start_scheduling: 50
+    # Evaluate the held-out test set once after training, not during model selection.
+    test_epochs: []

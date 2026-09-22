@@ -1,6 +1,19 @@
 
 # SepReformer for Speech Separation [NeurIPS 2024]
 
+New English/Vietnamese baseline and LTRR experiments use the
+[shared 16 kHz protocol v2](docs/COMMON_16K_PROTOCOL.md), including dataset preparation,
+GPU checks and fresh-run instructions. Historical results retain their original configs.
+
+VN-SpeechMix experiments: [baseline](models/SepReformer_Base_VnSpeechMix_16K/README.md)
+and [LTRR (original course-project NoGate)](models/SepReformer_LTRR_VnSpeechMix_16K/README.md).
+The two packages share the current training protocol and backbone initialization.
+
+Historical Libri2Mix baseline and LTRR (formerly NoGate) code from the course
+project is preserved separately in [legacy/libri2mix_16k](legacy/libri2mix_16k/README.md).
+See [project layout and cleanup notes](docs/PROJECT_LAYOUT.md) to distinguish
+historical experiments from the current VN-SpeechMix protocol.
+
 > ⚠️ The next-generation model **[SR-CorrNet-SS](https://github.com/dmlguq456/SR_CorrNet_SS)** ([arXiv:2603.29097](https://arxiv.org/abs/2603.29097)) ships all `.pt` checkpoints on HF Hub and a Python library API — please use it instead. Sorry for the unanswered issues here.
 
 This is the official implementation of “Separate and Reconstruct: Asymmetric Encoder-Decoder for Speech Separation” accepted in NeurIPS 2024 [Paper Link(Arxiv)](https://arxiv.org/abs/2406.05983)
@@ -109,9 +122,9 @@ and shared-config SHA-256 are embedded in every training checkpoint. Keep the
 `initializations/` directory with the checkpoints and do not put a trained
 baseline checkpoint in `log/pretrain_weights` for this from-scratch comparison.
 
-For a reproducible single-NVIDIA-L40 environment, preflight checks, persistent
+For a reproducible CUDA environment, preflight checks, persistent
 checkpoint policy, native setup and Docker commands, see
-[`docs/L40_DEPLOYMENT.md`](docs/L40_DEPLOYMENT.md).
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 Before a full run, the PARR-specific identity, shape, and gradient checks can be run with:
 

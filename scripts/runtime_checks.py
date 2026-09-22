@@ -1,4 +1,4 @@
-"""CPU regression checks; also used by the L40 preflight.
+"""CPU regression checks; also used by the deployment preflight.
 
 Run: python -m scripts.runtime_checks
 """

@@ -1,5 +1,9 @@
 # SepReformer-PARR for Libri2Mix 16 kHz
 
+Default training now uses [common protocol v2](../../docs/COMMON_16K_PROTOCOL.md).
+Prepare the Libri2Mix manifest before starting a new English run. For Vietnamese
+data, explicitly select the config below.
+
 ## VN-SpeechMix configuration
 
 `configs_vnspeechmix.yaml` pairs this PARR implementation with
@@ -12,7 +16,7 @@ python run.py --model SepReformer_PARR_Libri2Mix_16K --config models/SepReformer
 ```
 
 Use the same `--config` for resume and evaluation. Shared initialization is saved
-to `initializations/vnspeechmix/sepreformer_base_vnspeechmix_16k_seed_0000.pth`
+to `initializations/vnspeechmix_common_v2/sepreformer_base_vnspeechmix_16k_seed_0000.pth`
 for seed 0. This optional configuration runs PARR, not LTRR; baseline training
 continues to use its own `configs.yaml`.
 
@@ -69,14 +73,12 @@ The loader can read the archive directly, but extracting it to
 python run.py --model SepReformer_PARR_Libri2Mix_16K --engine-mode train
 ```
 
-Put model-initialization checkpoints in `log/pretrain_weights`. Their compatible
-model tensors are loaded, but optimizer state and epoch are intentionally not
-restored. Checkpoints in `log/scratch_weights` resume the same architecture with
-model, optimizer, scheduler, and epoch state; all newly saved checkpoints go
-there. New checkpoints include a full run contract (configuration, architecture,
-source fingerprints and pipeline revision). Resume/evaluation reject missing or
-incompatible contracts. Old weights may be used explicitly as model-only
-initialization with paired initialization disabled, not as a controlled resume.
+New checkpoints are stored under `runs/<model>/seed_<seed>/<run-id>/checkpoints/`.
+Use explicit `--resume path/to/latest.pth` with the same config to restore model,
+optimizer, scheduler and RNG state. The launcher does not automatically resume
+from old `log/scratch_weights` or load `log/pretrain_weights`. A full run contract
+records config, architecture, source fingerprints and pipeline revision;
+incompatible checkpoints are rejected. Start protocol v2 from epoch zero.
 
 The length-aware spectral loss and validation policy changed in this revision.
 Start fresh baseline/PARR runs together; see

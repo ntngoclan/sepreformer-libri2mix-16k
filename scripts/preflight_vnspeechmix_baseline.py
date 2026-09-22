@@ -1,4 +1,4 @@
-"""Baseline VN-SpeechMix audit and real-audio optimizer smoke test (not full epochs)."""
+"""VN-SpeechMix/Libri2Mix baseline/LTRR audit and real-audio smoke test (not full epochs)."""
 import argparse
 import csv
 import json
@@ -8,6 +8,7 @@ import shutil
 import sys
 import tempfile
 import time
+import zipfile
 from pathlib import Path
 
 os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
@@ -17,6 +18,10 @@ sys.dont_write_bytecode = True
 def main():
     p = argparse.ArgumentParser(__doc__)
     p.add_argument('--root', required=True)
+    p.add_argument('--model', default='SepReformer_Base_VnSpeechMix_16K',
+                   choices=['SepReformer_Base_VnSpeechMix_16K', 'SepReformer_LTRR_VnSpeechMix_16K',
+                            'SepReformer_Base_Libri2Mix_16K', 'SepReformer_LTRR_Libri2Mix_16K'])
+    p.add_argument('--config', help='Optional pilot config, relative to --root or absolute')
     p.add_argument('--device', choices=['cpu', 'cuda'], default='cpu')
     p.add_argument('--samples', type=int, default=2048)
     p.add_argument('--steps', type=int, default=2)
@@ -32,14 +37,22 @@ def main():
     import yaml
     from loguru import logger
     logger.remove()
-    from models.SepReformer_Base_VnSpeechMix_16K.dataset import VnSpeechMixDataset, _collate, _seed_worker
-    from models.SepReformer_Base_VnSpeechMix_16K.model import Model
+    import importlib
+    dataset_module = importlib.import_module(f'models.{args.model}.dataset')
+    VnSpeechMixDataset = getattr(dataset_module, 'VnSpeechMixDataset', None) or dataset_module.Libri2MixDataset
+    _collate, _seed_worker = dataset_module._collate, dataset_module._seed_worker
+    Model = importlib.import_module(f'models.{args.model}.model').Model
     from utils.util_implement import CriterionFactory, OptimizerFactory, SchedulerFactory
     from utils.util_system import set_random_seed
+    report_path = Path(args.report)
+    if not report_path.is_absolute():
+        report_path = root / report_path
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     report = {'status': 'running', 'checks': {}, 'limitations': []}
     started = time.time()
     try:
-        cfg = yaml.safe_load((root/'models/SepReformer_Base_VnSpeechMix_16K/configs.yaml').read_text())['config']
+        config_path = root / args.config if args.config else root/'models'/args.model/'configs.yaml'
+        cfg = yaml.safe_load(config_path.read_text())['config']
         set_random_seed(**cfg['experiment'])
         torch.set_num_threads(4)
         device = torch.device(args.device)
@@ -61,20 +74,30 @@ def main():
             datasets[split] = ds
             assert len(ds) == expected, (split, len(ds), expected)
             names = {x[0] for x in ds.examples}
-            manifest_names = [r['mixture_id']+'.wav' for r in rows if r['split'] == split]
+            manifest_names = [(r['key'] if 'key' in r else r['mixture_id']+'.wav')
+                              for r in rows if r['split'] == split]
             assert len(manifest_names) == len(set(manifest_names)) == expected
             assert set(manifest_names) == names, (split, 'manifest/file mismatch')
+            archive_names = []
+            if ds.storage == 'zip':
+                with zipfile.ZipFile(ds.archive_path) as archive:
+                    archive_names = archive.namelist()
             for folder in [cfg['dataset']['mixture_dir'], *cfg['dataset']['source_dirs']]:
-                actual = {x.name for x in (ds.extracted_root/ds.partition_dir/folder).glob('*.wav')}
+                if ds.storage == 'directory':
+                    actual = {x.name for x in (ds.extracted_root/ds.partition_dir/folder).glob('*.wav')}
+                else:
+                    prefix = f'{ds.archive_root}/{ds.partition_dir}/{folder}/'
+                    actual = {x[len(prefix):] for x in archive_names
+                              if x.startswith(prefix) and x.endswith('.wav')}
                 assert actual == names, (split, folder, 'file sets differ')
-            indices = range(len(ds)) if args.full_audio else sorted({0, len(ds)-1, *random.Random(0).sample(range(len(ds)), 8)})
+            indices = range(len(ds)) if args.full_audio else sorted({0, len(ds)-1, *random.Random(0).sample(range(len(ds)), min(8, len(ds)))})
             worst = 0.0
             for i in indices:
                 _, mixpath, sourcepaths = ds.examples[i]
                 arrays = []
                 for path in [mixpath, *sourcepaths]:
-                    audio, sr = sf.read(path, dtype='float32')
-                    assert sr == 16000 and audio.ndim == 1 and len(audio) > 0 and np.isfinite(audio).all(), path
+                    # The dataset reader also validates sample rate, mono and finiteness.
+                    audio = ds._load_audio(path)
                     arrays.append(audio)
                 assert len({len(a) for a in arrays}) == 1
                 error = float(np.max(np.abs(arrays[0]-arrays[1]-arrays[2])))
@@ -138,6 +161,7 @@ def main():
                 restored,_ = model(x,return_aux=False)
             for left,right in zip(output,restored): torch.testing.assert_close(left,right,rtol=0,atol=0)
         report['checks']['model'] = {'parameters':sum(p.numel() for p in model.parameters()),
+            'name':args.model,
             'device':str(device),'samples':args.samples,'batch_size':cfg['dataloader']['batch_size'],
             'steps':args.steps,'losses':losses,'checkpoint_roundtrip':'passed','workers':args.workers}
         from importlib.metadata import version, PackageNotFoundError
@@ -160,7 +184,7 @@ def main():
         raise
     finally:
         report['elapsed_seconds'] = time.time()-started
-        Path(args.report).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+        report_path.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
         print('Report:',args.report,report['status'],flush=True)
 
 

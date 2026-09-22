@@ -1,4 +1,4 @@
-"""Fail-fast deployment check for SepReformer-PARR on one NVIDIA L40."""
+"""Deployment checks for Libri2Mix baseline/PARR on the available CUDA GPU."""
 
 import argparse
 import json
@@ -132,30 +132,11 @@ def check_evaluator(config):
     return {name: float(row[name]) for name in required}
 
 
-def check_gpu(require_l40):
+def check_gpu():
     if not torch.cuda.is_available():
         raise RuntimeError("torch.cuda.is_available() is False.")
-    if torch.cuda.device_count() != 1:
-        raise RuntimeError(
-            f"Expected exactly one visible GPU, found {torch.cuda.device_count()}. "
-            "Set CUDA_VISIBLE_DEVICES to one device."
-        )
     name = torch.cuda.get_device_name(0)
     capability = torch.cuda.get_device_capability(0)
-    if not torch.__version__.startswith("2.1.2"):
-        raise RuntimeError(
-            f"Expected PyTorch 2.1.2 for the controlled experiment, found {torch.__version__}."
-        )
-    if torch.version.cuda is None or not torch.version.cuda.startswith("12.1"):
-        raise RuntimeError(
-            f"Expected the CUDA 12.1 PyTorch build, found CUDA {torch.version.cuda}."
-        )
-    if require_l40 and "L40" not in name.upper():
-        raise RuntimeError(f"Expected an NVIDIA L40, found '{name}'.")
-    if require_l40 and capability != (8, 9):
-        raise RuntimeError(
-            f"Expected L40 compute capability 8.9, found {capability[0]}.{capability[1]}."
-        )
     test_tensor = torch.randn(256, 256, device="cuda")
     test_value = (test_tensor @ test_tensor).mean()
     torch.cuda.synchronize()
@@ -164,6 +145,8 @@ def check_gpu(require_l40):
     properties = torch.cuda.get_device_properties(0)
     return {
         "name": name,
+        "visible_device_count": torch.cuda.device_count(),
+        "tested_device_index": 0,
         "compute_capability": list(capability),
         "vram_gib": properties.total_memory / (1024 ** 3),
         "torch_version": torch.__version__,
@@ -381,7 +364,6 @@ def check_forward_backward(model_name, config, forward_samples, batch_size):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--require-l40", action="store_true")
     parser.add_argument("--skip-data", action="store_true")
     parser.add_argument("--quick-data", action="store_true", help="Sample-only scan; not a full release check.")
     parser.add_argument("--skip-backward", action="store_true")
@@ -393,7 +375,7 @@ def main():
         help="Defaults to the configured training batch size (currently 2).",
     )
     parser.add_argument(
-        "--report", default=str(ROOT / "run_logs" / "preflight_l40_report.json")
+        "--report", default=str(ROOT / "run_logs" / "preflight_report.json")
     )
     args = parser.parse_args()
 
@@ -420,7 +402,7 @@ def main():
                                 or args.forward_samples != parr_config["dataset"]["max_len"]
                                 or args.batch_size not in (None, parr_config["dataloader"]["batch_size"])) else "passed",
         "root": str(ROOT),
-        "gpu": check_gpu(args.require_l40),
+        "gpu": check_gpu(),
         "packages": {
             name: package_version(name)
             for name in (

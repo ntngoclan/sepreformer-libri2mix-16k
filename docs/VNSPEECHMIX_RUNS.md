@@ -2,32 +2,32 @@
 
 For the dedicated VN-SpeechMix baseline package and its matching PARR config, see
 [SepReformer_Base_VnSpeechMix_16K](../models/SepReformer_Base_VnSpeechMix_16K/README.md).
-The commands below continue to document the earlier package names.
+New experiments use [common protocol v2](COMMON_16K_PROTOCOL.md).
 
-The two existing `*_Libri2Mix_16K` Python package names are retained for compatibility.
-Their default configs now select `data/VnSpeechMix/rendered/{train,valid,test}`
-(18,000 / 3,000 / 5,000 mixtures). Architecture, losses, optimizer, crop policy and
-training schedule are unchanged. Both models use `initializations/vnspeechmix/`.
+The dedicated VN packages select `data/VnSpeechMix/rendered/{train,valid,test}`
+(18,000 / 3,000 / 5,000 mixtures). Their common v2 initialization directory is
+`initializations/vnspeechmix_common_v2/`. The root Libri2Mix packages now default
+to English data; do not use their default configs for a Vietnamese experiment.
 The published split has two speakers shared by validation/test; training has no
 speaker overlap with either. Report this limitation when using the published split.
 
 ## Prepare and verify
 
-Use Python 3.10/3.11 and the existing L40 setup script. Setuptools is pinned to
+Use Python 3.10/3.11 and the shared environment setup script. Setuptools is pinned to
 80.9.0 for TensorBoard compatibility. CUDA determinism uses `:4096:8` before Python
 loads CUDA. Deterministic algorithms remain in warn-only mode: adaptive average
 pooling backward on CUDA can still be nondeterministic. Do not claim bitwise CUDA
 reproducibility; use the same seed set for baseline and PARR.
 
 ```bash
-bash scripts/setup_l40.sh
+bash scripts/setup_env.sh
 source .venv/bin/activate
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 python -m scripts.runtime_checks
 python -m scripts.test_parr_fixes
 python -m scripts.test_run_management
 python -m models.SepReformer_PARR_Libri2Mix_16K.smoke_test_parr
-python scripts/preflight_l40.py --require-l40
+python scripts/preflight_vnspeechmix_baseline.py --root . --model SepReformer_Base_VnSpeechMix_16K --device cuda --samples 64000 --steps 2 --workers 12 --full-audio --report run_logs/vn_base_v2_gpu.json
 ```
 
 Require the preflight JSON to report complete success on the actual training GPU.
@@ -41,15 +41,15 @@ dataset validation report and revalidate audio after transfer.
 ## Start and resume
 
 ```bash
-python run.py --model SepReformer_Base_Libri2Mix_16K --seed 0 --run-id vn_base_s0
-python run.py --model SepReformer_PARR_Libri2Mix_16K --seed 0 --run-id vn_parr_s0
+python run.py --model SepReformer_Base_VnSpeechMix_16K --seed 0 --run-id vn_base_s0
+python run.py --model SepReformer_PARR_Libri2Mix_16K --config models/SepReformer_PARR_Libri2Mix_16K/configs_vnspeechmix.yaml --seed 0 --run-id vn_parr_s0
 ```
 
 Use the same seed for each pair (for example 0, 1, 2). `--seed` updates the experiment
 and DataLoader seeds together. A timestamp with microseconds is generated if
 `--run-id` is omitted. `--output-dir /persistent/runs` chooses persistent storage.
-An existing training run directory is always rejected. The L40 shell wrappers
-forward these arguments, e.g. `bash scripts/train_l40.sh --seed 0 --run-id vn_parr_s0`.
+An existing training run directory is always rejected. The training/evaluation wrappers
+forward these arguments, e.g. `MODEL=SepReformer_Base_VnSpeechMix_16K bash scripts/train.sh --seed 0 --run-id vn_base_s0`.
 
 ```text
 runs/<model>/seed_0000/<run-id>/
@@ -70,9 +70,9 @@ identity and run contract. No automatic scan of old model `log/` directories is
 used by the CLI.
 
 ```bash
-python run.py --model SepReformer_Base_Libri2Mix_16K --seed 0 \
+python run.py --model SepReformer_Base_VnSpeechMix_16K --seed 0 \
   --run-id vn_base_s0_continued \
-  --resume runs/SepReformer_Base_Libri2Mix_16K/seed_0000/vn_base_s0/checkpoints/latest.pth
+  --resume runs/SepReformer_Base_VnSpeechMix_16K/seed_0000/vn_base_s0/checkpoints/latest.pth
 ```
 
 Resume explicitly continues the optimizer/scheduler/RNG state into a **new run
@@ -115,8 +115,8 @@ included in snapshots even though `git diff` cannot include them.
 ## Evaluate a specific checkpoint
 
 ```bash
-python run.py --model SepReformer_Base_Libri2Mix_16K --engine-mode test --seed 0 \
-  --checkpoint runs/SepReformer_Base_Libri2Mix_16K/seed_0000/vn_base_s0/checkpoints/epoch_0050.pth
+python run.py --model SepReformer_Base_VnSpeechMix_16K --engine-mode test --seed 0 \
+  --checkpoint runs/SepReformer_Base_VnSpeechMix_16K/seed_0000/vn_base_s0/checkpoints/epoch_0050.pth
 ```
 
 Alternatively `--run-id vn_base_s0` without `--checkpoint` selects that run's
@@ -132,7 +132,7 @@ a `.partial` artifact is retained for diagnosis. Use a new destination when retr
 
 ```bash
 python scripts/backup_run.py create \
-  runs/SepReformer_Base_Libri2Mix_16K/seed_0000/vn_base_s0 \
+  runs/SepReformer_Base_VnSpeechMix_16K/seed_0000/vn_base_s0 \
   /persistent/backups/vn_base_s0_epoch0050.zip
 python scripts/backup_run.py verify /persistent/backups/vn_base_s0_epoch0050.zip
 ```
@@ -141,6 +141,6 @@ The archive includes checkpoints, TensorBoard, logs, snapshots and provenance,
 with per-file SHA-256 and an external `.zip.sha256`. Copy **both files** to Drive or
 another persistent destination and run `verify` again after download, before
 extracting. The script uses local/mounted storage; it does not upload to an account.
-Also preserve the dataset and `initializations/vnspeechmix/` separately, plus parent
+Also preserve the dataset and `initializations/vnspeechmix_common_v2/` separately, plus parent
 runs if resuming. Dataset audio and generated runs/backups are excluded from Git
 and Docker build context.

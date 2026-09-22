@@ -18,7 +18,7 @@ Các sửa bổ sung: loss thống kê epoch được tính theo số utterance 
 
 Frame coverage của mỗi câu bằng chạy riêng câu đó: `padded_length=max(frame_length,ceil(length/hop)*hop)`. Số frame là `1+(padded_length-frame_length)//hop`. Đây không phải thay đổi sang STFT center=True hoặc bổ sung mọi cửa sổ giao với đuôi câu. Khi tối ưu scaling của reference, scale bình phương được áp dụng lên STFT power trước khi cộng epsilon magnitude; nhờ đó giữ được giá trị và gradient của phép scale waveform trước STFT, trong sai số số học.
 
-Reference cache chỉ sống trong một batch, không cache theo tên utterance qua optimizer updates. Cách nhóm theo độ dài có thể tạo thêm lần gọi backbone khi batch chứa nhiều độ dài khác nhau; các batch có cùng crop length vẫn đi đường xử lý gộp. Cần đo wall-clock/VRAM trên L40, không suy tốc độ thực từ số lần gọi STFT hoặc số tham số.
+Reference cache chỉ sống trong một batch, không cache theo tên utterance qua optimizer updates. Cách nhóm theo độ dài có thể tạo thêm lần gọi backbone khi batch chứa nhiều độ dài khác nhau; các batch có cùng crop length vẫn đi đường xử lý gộp. Cần đo wall-clock/VRAM trên L4, không suy tốc độ thực từ số lần gọi STFT hoặc số tham số.
 
 **Checkpoint và kết quả cũ**
 
@@ -44,10 +44,10 @@ Kiểm tra CPU dùng PyTorch 2.1.2+cpu, NumPy 1.26.4 và Python 3.11 portable tr
 
 Kết quả cuối: **25/25 regression đạt trong 38,703 giây** (12 test runtime và 13 test sửa lỗi); smoke test PARR đạt; AST của 41 file Python đạt; code dùng chung và cấu hình hai package được đối chiếu nhất quán; `git diff --check` không phát hiện lỗi whitespace. Một lượt gọi gộp qua stdin trước đó không chạy được multiprocessing spawn trên Windows; lượt xác nhận cuối dùng entry point tương thích và test resume hai worker đã đạt.
 
-CUDA/L40, throughput thực và PESQ runtime vẫn cần chạy trong môi trường deployment:
+CUDA/L4, throughput thực và PESQ runtime vẫn cần chạy trong môi trường deployment:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python scripts/preflight_l40.py --require-l40
+CUDA_VISIBLE_DEVICES=0 python scripts/preflight.py
 ```
 
 Các hướng stage conditioning, dilation phụ thuộc stage, gate cố định, stage cuối-only và bỏ output bias vẫn là ablation riêng. Chưa thay đổi chúng trong bản sửa này vì sẽ thay đổi giả thuyết kiến trúc đang được đánh giá.

@@ -1,0 +1,203 @@
+{
+  "origin": "SourceCode.zip supplied by user, course-project source",
+  "normalization": "UTF-8 source with normalized LF line endings",
+  "files": [
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/dataset.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/dataset.py",
+      "source_sha256": "9ff39973b81f0b617d7f00287c0f80f2831831cd331ee7e373fcee240bc2e811",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "9ff39973b81f0b617d7f00287c0f80f2831831cd331ee7e373fcee240bc2e811"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/main.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/main.py",
+      "source_sha256": "e0dea0b3659b3d8ae4b10b07dbcbf9988de8c5948ef6bf1c73445ec6c8d9cd4f",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "caeccca43c6508edd13807599ab1d2807e50c2ef33284603a27336855d83ff70"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/modules/network.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/modules/network.py",
+      "source_sha256": "43807c72aea8d22e4c1438878fd501f47f2355123a76f5de60b8d5f8af027004",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "43807c72aea8d22e4c1438878fd501f47f2355123a76f5de60b8d5f8af027004"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/modules/module.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/modules/module.py",
+      "source_sha256": "850ed3a069f2c5c8830eda077dfbfc1db36a905a577fcaa70937fa5f55771dd7",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "82a52f483830ae1d8a87a262d352dada38c84be666721398db9af6db8e8dd04a"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/configs.yaml",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/configs.yaml",
+      "source_sha256": "0bfab96cb579463d4ff1ce68b21b68a2b43efa2392e2dcf5aa351492406bac7b",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "0bfab96cb579463d4ff1ce68b21b68a2b43efa2392e2dcf5aa351492406bac7b"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/engine.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/engine.py",
+      "source_sha256": "cc121db7686003ee3de5aaeb762457d3f37572730fda47d1086b98109b1b1134",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "cc121db7686003ee3de5aaeb762457d3f37572730fda47d1086b98109b1b1134"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_Base_Libri2Mix_16K/model.py",
+      "target": "models/SepReformer_Base_Libri2Mix_16K/model.py",
+      "source_sha256": "f5252f8af147ee678cd3eadb27d08e62b46d78b1ff037d00eeb856437251c2e7",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "a1307c769e8fd8b847c5896d7b63863d218798605e791efa1006d75b0fe5ed9c"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/model.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/model.py",
+      "source_sha256": "5327a44ea894ffe188d3b0cf2392ccea86ecc13f9981d3dcb7966adab0e4c7e5",
+      "changes": "package/class naming or preparation-script routing; see README",
+      "imported_text_sha256": "1ba0bac445f7cd263b332cf5f5c2a01c5112e7b191e8c9ec0393d311bff762af"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/dataset.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/dataset.py",
+      "source_sha256": "9ff39973b81f0b617d7f00287c0f80f2831831cd331ee7e373fcee240bc2e811",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "9ff39973b81f0b617d7f00287c0f80f2831831cd331ee7e373fcee240bc2e811"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/main.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/main.py",
+      "source_sha256": "f285978eda8d57b13eec1cb94563ee166e606d9b4a5b9b58e2aade2bc8698139",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "f285978eda8d57b13eec1cb94563ee166e606d9b4a5b9b58e2aade2bc8698139"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/modules/module.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/modules/module.py",
+      "source_sha256": "caf5b25be5b20a26f1fbabce89af4c52f6742cad4a7d82dadb93af75ef4a1fdd",
+      "changes": "package/class naming or preparation-script routing; see README",
+      "imported_text_sha256": "99dda12129448a12c9c018e56a7e5ba83bd4c72d77fbd433cfce1b4c0dcec7cc"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/modules/network.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/modules/network.py",
+      "source_sha256": "43807c72aea8d22e4c1438878fd501f47f2355123a76f5de60b8d5f8af027004",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "43807c72aea8d22e4c1438878fd501f47f2355123a76f5de60b8d5f8af027004"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/engine.py",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/engine.py",
+      "source_sha256": "b05901e5eb75c89adcf86f2a7c43843d1d4231663515409acc087236699def18",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "b05901e5eb75c89adcf86f2a7c43843d1d4231663515409acc087236699def18"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/models/SepReformer_SGLR_NoGate_Libri2Mix_16K/configs.yaml",
+      "target": "models/SepReformer_LTRR_Libri2Mix_16K/configs.yaml",
+      "source_sha256": "fdf44078be047a5aeb393e6d33508e874f17c6a25bd448c068dc296a4d265fc2",
+      "changes": "package/class naming or preparation-script routing; see README",
+      "imported_text_sha256": "cf88a8e8ea6f6b9a86cf6e69a74e64992be977ad584aa2e465c56fd353693ca0"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/__init__.py",
+      "target": "utils/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/implements/__init__.py",
+      "target": "utils/implements/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/implements/optimizers.py",
+      "target": "utils/implements/optimizers.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/scripts/02_make_scp_sepreformer.py",
+      "target": "prepare_scp.py",
+      "source_sha256": "039d4c7d225282585d380e3db82dfd195370b9575259fe99d4237fefc13307e0",
+      "changes": "package/class naming or preparation-script routing; see README",
+      "imported_text_sha256": "f5f6b00ffd9fea60974b62d70a5d810f9e9a7d947a22db4c5a8afc6114ab2eab"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/util_dataset.py",
+      "target": "utils/util_dataset.py",
+      "source_sha256": "70c7bede81d1fc2910bf957968aee05452c9277011501bbf3f6e7f8eb5630f36",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "d5f14e3bbde7ce3fa7aba3fd93c8a1052682ca7c54ceb0852c2039807b40f0b9"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/implements/schedulers.py",
+      "target": "utils/implements/schedulers.py",
+      "source_sha256": "bc547ca9d72029a9133787e7f00ed759f30a2104f8935a2e7017fae1b9a5734d",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "5266d402ff3f36c2233cb128109618bd5637fe4f6bdcdddf903eece80402efb8"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/util_system.py",
+      "target": "utils/util_system.py",
+      "source_sha256": "462cfe0321fe52331a3a4e70f795e69309823801199e28b60f166d08d857d26f",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "462cfe0321fe52331a3a4e70f795e69309823801199e28b60f166d08d857d26f"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/util_implement.py",
+      "target": "utils/util_implement.py",
+      "source_sha256": "4cc4354909e4a296b1f3807bdeb3810902a6be19226da8c1c57084afa71e2ec7",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "c47b868f664e4ed14186d451688e4261f7b86156945b80c98c72dd54e998eaf0"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/run.py",
+      "target": "run.py",
+      "source_sha256": "ccfeb41f5525df2a525ba9a7dd964c5e21e482462902704e37d6426407e0d213",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "a0146ac0771d5c110b5fdcf9970f6845df9a4d30ef1eb5af8223acf33d523e1b"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/implements/criterions.py",
+      "target": "utils/implements/criterions.py",
+      "source_sha256": "f90de07c340ab2a813eb9f43a6237baa5d6ccc8ae99141ef0f935f107d9166ad",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "f90de07c340ab2a813eb9f43a6237baa5d6ccc8ae99141ef0f935f107d9166ad"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/requirements_minimal.txt",
+      "target": "requirements_minimal.txt",
+      "source_sha256": "ac64755921832941f3bf8cbcc18f6718c9b44dd3d6e323dfed87e83e99349766",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "1aeec8fc243ed29d542c46a296789781b5f25162483bf3f470a9cc2dfa8aab06"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/util_engine.py",
+      "target": "utils/util_engine.py",
+      "source_sha256": "27ea220cbef0a1dc25e4dbf84c3d0046f392d3ddab3f2bd810e22792dcfcdfce",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "27ea220cbef0a1dc25e4dbf84c3d0046f392d3ddab3f2bd810e22792dcfcdfce"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/decorators.py",
+      "target": "utils/decorators.py",
+      "source_sha256": "55a5ac366fd122e8b3f9afc0a0b338367c46e2a13fa4c3eb428ab39bbd10f9ad",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "c0a7feb93a9a58f8c9a7e32cf37b1ae8b66e20f82a44b7e718bbcd9de5e97688"
+    },
+    {
+      "source": "SourceCode/23520842_NguyenThiNgocLan_IE207_SouceCode/src/utils/implements/functions.py",
+      "target": "utils/implements/functions.py",
+      "source_sha256": "b2cc048bbe40e19fb501ee8c000003b96584b446a747d3207f0c5efc418a0fc0",
+      "changes": "line-ending normalization only",
+      "imported_text_sha256": "7c3743a4db6bd967e4e3634e0d5214c82cd0b466f45366a9c8f9ea49ca096e3e"
+    }
+  ],
+  "added_compatibility_file": "utils/functions.py re-exports original utils.implements.functions.apply_cmvn"
+}

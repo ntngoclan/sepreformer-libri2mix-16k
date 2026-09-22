@@ -183,3 +183,11 @@ backups/
 .venv-runchecks/
 initializations/**/*.pth
 initializations/**/*.pth.*.tmp
+
+# Re-creatable package exports and historical run artifacts
+models/*.zip
+legacy/**/sep_output/
+legacy/**/log/
+legacy/**/evaluation/
+legacy/**/test_wav_out/
+legacy/**/data/

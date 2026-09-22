@@ -4,7 +4,7 @@ Ngày kiểm tra: 2026-09-05
 
 > Cập nhật vận hành ngày 2026-09-07: xem [tái kiểm tra checkpoint, resume,
 > preflight và inference](PARR_REAUDIT_2026_09_07.md). Các kết quả runtime chưa
-> kiểm chứng trong bản cũ không được coi là đã đạt trên L40.
+> kiểm chứng trong bản cũ không được coi là đã đạt trên L4.
 
 ## 1. Phạm vi
 
@@ -161,10 +161,10 @@ Kết quả từng utterance và summary có bootstrap CI 95% nằm trong thư m
 `evaluation/checkpoint_epoch_XXXX`. Quy trình và lệnh paired comparison được mô
 tả tại `docs/SEPARATION_EVALUATION_PROTOCOL.md`.
 
-## 10. Trạng thái triển khai NVIDIA L40
+## 10. Trạng thái triển khai NVIDIA L4
 
-Môi trường L40 được cố định bằng `requirements-l40.txt`, `Dockerfile.l40` và
-`scripts/setup_l40.sh`. Script `scripts/preflight_l40.py` kiểm tra CUDA, cấu
+Môi trường L4 được cố định bằng `requirements-runtime.txt`, `Dockerfile` và
+`scripts/setup_env.sh`. Script `scripts/preflight.py` kiểm tra CUDA, cấu
 hình dùng chung baseline/PARR, ba partition Libri2Mix, evaluator, checkpoint
 round-trip và một bước forward/loss/backward đầy đủ ở batch 2 × 64.000 samples
 cho cả hai mô hình.
@@ -176,6 +176,6 @@ nhờ đó thứ tự minibatch và chuỗi crop không còn phụ thuộc vào 
 ngẫu nhiên khác nhau giữa baseline và PARR.
 
 Hướng dẫn vận hành và mount persistent storage nằm tại
-`docs/L40_DEPLOYMENT.md`. Kiểm tra tĩnh trên máy phát triển không thay thế
-preflight CUDA: chỉ bắt đầu full training khi preflight trên chính L40 kết thúc
+`docs/DEPLOYMENT.md`. Kiểm tra tĩnh trên máy phát triển không thay thế
+preflight CUDA: chỉ bắt đầu full training khi preflight trên chính L4 kết thúc
 với exit code 0.

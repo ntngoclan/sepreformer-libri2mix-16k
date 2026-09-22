@@ -1,4 +1,4 @@
-project: "[Project] SepReformer-PARR VN-SpeechMix 16 kHz"
+project: "[Project] SepReformer-PARR Libri2Mix 16 kHz"
 notes: "SepReformer-B with Progressive Adaptive Residual Refinement at every reconstruction decoder stage"
 config:
   experiment:
@@ -6,7 +6,7 @@ config:
     deterministic: true
   paired_initialization:
     enabled: true
-    directory: initializations/vnspeechmix
+    directory: initializations/libri2mix_common_v2
     baseline_model: SepReformer_Base_Libri2Mix_16K
     candidate_model: SepReformer_PARR_Libri2Mix_16K
     allowed_extra_prefix: separator.parr.
@@ -14,16 +14,16 @@ config:
     sampling_rate: 16000
     max_len: 64000             # 4 seconds at 16 kHz
     sample_length_multiple: 8  # must match the waveform encoder stride
-    archive: data/VnSpeechMix/rendered.zip
-    extracted_dir: data/VnSpeechMix/rendered
-    archive_root: rendered
-    manifest: data/VnSpeechMix/rendered/rendered_metadata.csv
-    expected_sizes: {train: 18000, valid: 3000, test: 5000}
+    archive: data/Libri2Mix.zip
+    extracted_dir: data/Libri2Mix/wav16k/min
+    archive_root: Libri2Mix/wav16k/min
+    manifest: data/Libri2Mix/manifest_16k_min.csv
+    expected_sizes: {train: 13900, valid: 3000, test: 3000}
     mixture_dir: mix_clean
     source_dirs: [s1, s2]
     partitions:
-      train: train
-      valid: valid
+      train: train-100
+      valid: dev
       test: test
   dataloader:
     batch_size: 2
@@ -129,6 +129,8 @@ config:
     name: [ReduceLROnPlateau, WarmupConstantSchedule]
     ReduceLROnPlateau:
       mode: min
+      threshold_mode: abs
+      threshold: 1.0e-4
       min_lr: 1.0e-10
       factor: 0.8
       patience: 2

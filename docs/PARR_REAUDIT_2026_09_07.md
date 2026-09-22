@@ -45,7 +45,7 @@ mono 16 kHz, không rỗng, đủ nguồn và độ dài raw bằng nhau. Thời
 | test | 3.000 | 9.000 | 4,1872 | Đạt |
 
 Tổng 59.700 WAV thuộc `mix_clean/s1/s2`, tất cả PCM 16-bit. Đây không phải kiểm
-tra các biến thể noisy/max/8 kHz và không thay thế kiểm tra DataLoader trên L40.
+tra các biến thể noisy/max/8 kHz và không thay thế kiểm tra DataLoader trên L4.
 
 ### Runtime và cú pháp
 
@@ -57,26 +57,26 @@ tra các biến thể noisy/max/8 kHz và không thay thế kiểm tra DataLoade
   của cả hai model, checkpoint/resume 0 và 2 worker, gamma/gate và inference.
 - Dataset class/SoundFile đã đọc thành công một mẫu ở từng split trực tiếp từ ZIP.
 - PESQ 0.0.4 chưa cài được trên Windows vì thiếu Microsoft Visual C++ 14+;
-  evaluator PESQ đầy đủ phải được kiểm tra trong môi trường Linux L40.
-- L40/CUDA, VRAM thực, PESQ runtime trên máy train và chạy hết epoch: chưa xác minh.
+  evaluator PESQ đầy đủ phải được kiểm tra trong môi trường Linux L4.
+- L4/CUDA, VRAM thực, PESQ runtime trên máy train và chạy hết epoch: chưa xác minh.
 
-Do đó cả baseline và PARR hiện **sẵn sàng để đưa lên L40 và chạy full
+Do đó cả baseline và PARR hiện **sẵn sàng để đưa lên L4 và chạy full
 preflight**, nhưng **chưa được đánh dấu sẵn sàng chạy thẳng 200 epoch** cho tới
-khi full preflight trên chính L40 trả `status: passed`.
+khi full preflight trên chính L4 trả `status: passed`.
 
 ## Điều kiện sử dụng
 
 Resume được thiết kế ở **ranh giới epoch**, không phải giữa minibatch. Giữ cùng
 dataset, batch size, số worker, sampler, phần mềm và GPU topology; không dùng
 persistent workers. Checkpoint cũ không có RNG không thể tái lập đầy đủ.
-CUDA có thể không deterministic nên không cam kết bitwise trên L40.
+CUDA có thể không deterministic nên không cam kết bitwise trên L4.
 
-Trên máy L40 chạy:
+Trên máy L4 chạy:
 
 ```bash
 source .venv/bin/activate
 python -m scripts.runtime_checks
-CUDA_VISIBLE_DEVICES=0 python scripts/preflight_l40.py --require-l40
+CUDA_VISIBLE_DEVICES=0 python scripts/preflight.py
 ```
 
 Preflight phải trả exit code 0 **và** `status: passed`; báo cáo cũ bị vô hiệu hóa

@@ -19,7 +19,7 @@ Phần triển khai PARR nhìn chung khớp mô tả kiến trúc. Những vấn
 | Phép thử công thức | Đã chạy script thư viện chuẩn Python để kiểm tra STFT, config hash, số tham số và độ dài receptive field |
 | PyTorch runtime hiện tại | Chưa chạy: Python mặc định không có `torch`; `.venv-audit` trỏ tới Python 3.11 gốc không còn tồn tại |
 | Huấn luyện và đánh giá | Không tìm thấy checkpoint hoặc metrics của hai model Libri2Mix trong phạm vi thư mục model; có checkpoint WSJ0 |
-| GPU L40, backward và latency | Chưa kiểm chứng trong lượt đánh giá này |
+| GPU L4, backward và latency | Chưa kiểm chứng trong lượt đánh giá này |
 
 Các kết quả CPU ghi trong audit ngày 07/09 là bằng chứng lịch sử, không được coi là kết quả vừa chạy lại trên trạng thái hiện tại. Script [parr_review_2026_09_10_probe.py](parr_review_2026_09_10_probe.py) ghi rõ đây là kiểm tra source/công thức, không thay thế forward/backward PyTorch.
 
@@ -230,4 +230,4 @@ Phát biểu phù hợp trước khi có kết quả: **“PARR được đề x
 [^7]: Joris Cosentino và cộng sự. *LibriMix: An Open-Source Dataset for Generalizable Speech Separation*. 2020. [Kho chính thức](https://github.com/JorisCos/LibriMix), [bài gốc](https://arxiv.org/abs/2005.11262). Dùng cho phạm vi dataset và biến thể.
 [^8]: PyTorch. *GroupNorm*, tài liệu API 2.1. [Tài liệu](https://docs.pytorch.org/docs/2.1/generated/torch.nn.GroupNorm.html). Dùng cho phạm vi tính thống kê normalization.
 
-Nguồn cục bộ bổ sung: hai package Libri2Mix, `utils/implements/criterions.py`, `utils/evaluation_metrics.py`, `utils/paired_initialization.py`, `scripts/runtime_checks.py`, `scripts/preflight_l40.py`, `initializations/README.md`, `docs/DATASET_MANIFEST.md` và hai audit PARR trước đó. Số dòng tham chiếu ứng với trạng thái workspace tại ngày đánh giá; báo cáo không thay đổi mã huấn luyện.
+Nguồn cục bộ bổ sung: hai package Libri2Mix, `utils/implements/criterions.py`, `utils/evaluation_metrics.py`, `utils/paired_initialization.py`, `scripts/runtime_checks.py`, `scripts/preflight.py`, `initializations/README.md`, `docs/DATASET_MANIFEST.md` và hai audit PARR trước đó. Số dòng tham chiếu ứng với trạng thái workspace tại ngày đánh giá; báo cáo không thay đổi mã huấn luyện.

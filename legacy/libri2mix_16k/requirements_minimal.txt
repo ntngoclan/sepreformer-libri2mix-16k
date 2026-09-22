@@ -1,0 +1,11 @@
+torch
+torchaudio
+numpy
+scipy
+pandas
+matplotlib
+pyyaml
+tensorboard
+soundfile
+pesq
+pystoi
