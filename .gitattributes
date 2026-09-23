@@ -1,1 +1,4 @@
 models/SepReformer_Base_WSJ0/log/scratch_weights/epoch.0180.pth filter=lfs diff=lfs merge=lfs -text
+
+# Architecture PDFs contain binary streams; do not diff or normalize as text.
+*.pdf binary

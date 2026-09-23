@@ -1,0 +1,355 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3600" height="2160" viewBox="0 0 3600 2160">
+<rect width="100%" height="100%" fill="white"/>
+<title>SepReformer + LTRR | detailed architecture</title>
+<desc>Current shared 16 kHz configuration · shape probe B=2, J=2, N=64,000 · stage indices follow Python ModuleList order</desc>
+<text x="45" y="58.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="40" font-weight="700" fill="#24344B">SepReformer + LTRR | detailed architecture</text>
+<text x="45" y="106.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#69788B">Current shared 16 kHz configuration · shape probe B=2, J=2, N=64,000 · stage indices follow Python ModuleList order</text>
+<polyline points="45,132 3555,132" fill="none" stroke="#CBD6E1" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="35" y="180" width="390" height="1420" rx="18" stroke="#266489" stroke-width="2.3" fill="#F1F7FC" stroke-dasharray="9 6"/>
+<text x="230.0" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#266489">Waveform front end</text>
+<text x="230.0" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#266489">[B,C,T] unless stated</text>
+<rect x="520" y="180" width="540" height="1420" rx="18" stroke="#B57626" stroke-width="2.3" fill="#FFFAF1" stroke-dasharray="9 6"/>
+<text x="790.0" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#B57626">Separation encoder</text>
+<text x="790.0" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#B57626">4 downsampling stages + bottleneck</text>
+<rect x="1130" y="180" width="385" height="1420" rx="18" stroke="#785095" stroke-width="2.3" fill="#F8F3FB" stroke-dasharray="9 6"/>
+<text x="1322.5" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#785095">Speaker split</text>
+<text x="1322.5" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#785095">One shared module; five calls</text>
+<rect x="1590" y="180" width="590" height="1420" rx="18" stroke="#398260" stroke-width="2.3" fill="#F2F9F4" stroke-dasharray="9 6"/>
+<text x="1885.0" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#398260">Reconstruction decoder</text>
+<text x="1885.0" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#398260">Execute D0 → D1 → D2 → D3 (upward)</text>
+<rect x="2280" y="180" width="710" height="1420" rx="18" stroke="#785095" stroke-width="2.3" fill="#F8F3FB" stroke-dasharray="9 6"/>
+<text x="2635.0" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#785095">LTRR · final output only</text>
+<text x="2635.0" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#785095">One shared block for all speaker branches</text>
+<rect x="3070" y="180" width="500" height="1420" rx="18" stroke="#266489" stroke-width="2.3" fill="#F1F7FC" stroke-dasharray="9 6"/>
+<text x="3320.0" y="222.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#266489">Waveform reconstruction</text>
+<text x="3320.0" y="257.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#266489">Shared speaker-wise main head</text>
+<text x="1322" y="298.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="19" font-weight="400" fill="#785095">Conv1d 128 → 1024, k=1</text>
+<text x="1322" y="322.32" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="19" font-weight="400" fill="#785095">GLU channels: 1024 → 512</text>
+<text x="1322" y="346.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="19" font-weight="400" fill="#785095">Conv1d 512 → 256, k=1</text>
+<text x="1322" y="370.96000000000004" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="19" font-weight="400" fill="#785095">view [B,256,T] → [BJ,128,T]</text>
+<text x="1322" y="395.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="19" font-weight="400" fill="#785095">GroupNorm(1,128)</text>
+<text x="230" y="326.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#24344B">Mixture x: [B,N] = [2,64000]</text>
+<polyline points="230,345 230,380" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,380 235.5,367.0 224.5,367.0" fill="#24344B"/>
+<rect x="65" y="380" width="330" height="100" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="230.0" y="422.96000000000004" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#266489">Waveform right-padding</text>
+<text x="230.0" y="451.12000000000006" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">N → Npad; here 64000</text>
+<polyline points="230,480 230,550" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,550 235.5,537.0 224.5,537.0" fill="#24344B"/>
+<rect x="65" y="550" width="330" height="130" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="230.0" y="593.88" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#266489">AudioEncoder</text>
+<text x="230.0" y="622.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Conv1d 1 → 256</text>
+<text x="230.0" y="650.1999999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">k=32, s=8, p=0; GELU</text>
+<text x="230" y="720.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">E: [2,256,7997]</text>
+<polyline points="230,680 230,695" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,695 235.5,682.0 224.5,682.0" fill="#24344B"/>
+<polyline points="230,733 230,780" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,780 235.5,767.0 224.5,767.0" fill="#24344B"/>
+<rect x="65" y="780" width="330" height="135" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="230.0" y="826.38" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#266489">FeatureProjector</text>
+<text x="230.0" y="854.54" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">GroupNorm(1,256)</text>
+<text x="230.0" y="882.6999999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Conv1d 256 → 128, k=1</text>
+<text x="230" y="954.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[2,128,7997]</text>
+<polyline points="230,915 230,928" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,928 235.5,915.0 224.5,915.0" fill="#24344B"/>
+<polyline points="230,968 230,1010" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,1010 235.5,997.0 224.5,997.0" fill="#24344B"/>
+<rect x="65" y="1010" width="330" height="100" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="230.0" y="1052.96" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#266489">Separator.pad_signal</text>
+<text x="230.0" y="1081.1200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Right-pad T0 → Tp</text>
+<text x="230" y="1150.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[2,128,8000]</text>
+<polyline points="230,1110 230,1125" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="230,1125 235.5,1112.0 224.5,1112.0" fill="#24344B"/>
+<polyline points="230,1165 230,1220 465,1220 465,305 790,305 790,350" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="790,350 795.5,337.0 784.5,337.0" fill="#24344B"/>
+<text x="65" y="1300.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">T0 = (Npad − 32)/8 + 1</text>
+<text x="65" y="1328.16" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Tp = 16 × ceil(T0/16)</text>
+<text x="65" y="1356.32" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Here: 7997 → 8000</text>
+<text x="65" y="1440.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Training crop: 4 seconds</text>
+<text x="65" y="1468.16" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">F0=256; F=128; J=2</text>
+<text x="65" y="1496.32" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">BJ = 4 for this probe</text>
+<rect x="550" y="350" width="480" height="90" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="388.28000000000003" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">E0 · (Global → Local) ×2</text>
+<text x="790.0" y="415.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">enc_stages[0]; [2,128,8000]</text>
+<polyline points="790,440 790,475" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="790" cy="455" r="4" fill="#24344B"/>
+<polyline points="790,455 1100,455 1100,490 1150,490" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1150,490 1137.0,484.5 1137.0,495.5" fill="#785095"/>
+<rect x="580" y="475" width="420" height="75" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="505.78000000000003" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">DownConv + BN + GELU</text>
+<text x="790.0" y="532.6600000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">DWConv k=5, s=2, p=2</text>
+<polyline points="790,550 790,610" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="790,610 795.5,597.0 784.5,597.0" fill="#24344B"/>
+<rect x="1150" y="452" width="345" height="76" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1322.5" y="484.24" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="700" fill="#785095">Split S0</text>
+<text x="1322.5" y="507.28000000000003" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#24344B">[2,128,8000] → [4,128,8000]</text>
+<polyline points="1495,490 1630,490" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1630,490 1617.0,484.5 1617.0,495.5" fill="#785095"/>
+<rect x="1630" y="350" width="510" height="90" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="388.28000000000003" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#398260">D3 · (Global → Local → CS) ×3</text>
+<text x="1885.0" y="415.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">dec_stages[3]; [4,128,8000]</text>
+<rect x="1630" y="467" width="510" height="63" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="492.09999999999997" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="700" fill="#398260">Concat channels → Conv1d 256 → 128</text>
+<text x="1885.0" y="517.6999999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#24344B">k=1; simple_fusion[3]</text>
+<rect x="1690" y="553" width="390" height="48" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="584.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#398260">Nearest upsample ×2</text>
+<polyline points="1885,553 1885,530" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,530 1879.5,543.0 1890.5,543.0" fill="#398260"/>
+<polyline points="1885,467 1885,440" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,440 1879.5,453.0 1890.5,453.0" fill="#398260"/>
+<polyline points="1885,610 1885,601" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,601 1879.5,614.0 1890.5,614.0" fill="#398260"/>
+<rect x="550" y="610" width="480" height="90" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="648.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">E1 · (Global → Local) ×2</text>
+<text x="790.0" y="675.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">enc_stages[1]; [2,128,4000]</text>
+<polyline points="790,700 790,735" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="790" cy="715" r="4" fill="#24344B"/>
+<polyline points="790,715 1100,715 1100,750 1150,750" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1150,750 1137.0,744.5 1137.0,755.5" fill="#785095"/>
+<rect x="580" y="735" width="420" height="75" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="765.78" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">DownConv + BN + GELU</text>
+<text x="790.0" y="792.66" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">DWConv k=5, s=2, p=2</text>
+<polyline points="790,810 790,870" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="790,870 795.5,857.0 784.5,857.0" fill="#24344B"/>
+<rect x="1150" y="712" width="345" height="76" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1322.5" y="744.24" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="700" fill="#785095">Split S1</text>
+<text x="1322.5" y="767.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#24344B">[2,128,4000] → [4,128,4000]</text>
+<polyline points="1495,750 1630,750" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1630,750 1617.0,744.5 1617.0,755.5" fill="#785095"/>
+<rect x="1630" y="610" width="510" height="90" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="648.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#398260">D2 · (Global → Local → CS) ×3</text>
+<text x="1885.0" y="675.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">dec_stages[2]; [4,128,4000]</text>
+<rect x="1630" y="727" width="510" height="63" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="752.1" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="700" fill="#398260">Concat channels → Conv1d 256 → 128</text>
+<text x="1885.0" y="777.7" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#24344B">k=1; simple_fusion[2]</text>
+<rect x="1690" y="813" width="390" height="48" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="844.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#398260">Nearest upsample ×2</text>
+<polyline points="1885,813 1885,790" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,790 1879.5,803.0 1890.5,803.0" fill="#398260"/>
+<polyline points="1885,727 1885,700" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,700 1879.5,713.0 1890.5,713.0" fill="#398260"/>
+<polyline points="1885,870 1885,861" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,861 1879.5,874.0 1890.5,874.0" fill="#398260"/>
+<rect x="550" y="870" width="480" height="90" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="908.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">E2 · (Global → Local) ×2</text>
+<text x="790.0" y="935.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">enc_stages[2]; [2,128,2000]</text>
+<polyline points="790,960 790,995" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="790" cy="975" r="4" fill="#24344B"/>
+<polyline points="790,975 1100,975 1100,1010 1150,1010" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1150,1010 1137.0,1004.5 1137.0,1015.5" fill="#785095"/>
+<rect x="580" y="995" width="420" height="75" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="1025.78" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">DownConv + BN + GELU</text>
+<text x="790.0" y="1052.66" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">DWConv k=5, s=2, p=2</text>
+<polyline points="790,1070 790,1130" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="790,1130 795.5,1117.0 784.5,1117.0" fill="#24344B"/>
+<rect x="1150" y="972" width="345" height="76" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1322.5" y="1004.24" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="700" fill="#785095">Split S2</text>
+<text x="1322.5" y="1027.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#24344B">[2,128,2000] → [4,128,2000]</text>
+<polyline points="1495,1010 1630,1010" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1630,1010 1617.0,1004.5 1617.0,1015.5" fill="#785095"/>
+<rect x="1630" y="870" width="510" height="90" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="908.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#398260">D1 · (Global → Local → CS) ×3</text>
+<text x="1885.0" y="935.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">dec_stages[1]; [4,128,2000]</text>
+<rect x="1630" y="987" width="510" height="63" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="1012.1" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="700" fill="#398260">Concat channels → Conv1d 256 → 128</text>
+<text x="1885.0" y="1037.7" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#24344B">k=1; simple_fusion[1]</text>
+<rect x="1690" y="1073" width="390" height="48" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="1104.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#398260">Nearest upsample ×2</text>
+<polyline points="1885,1073 1885,1050" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,1050 1879.5,1063.0 1890.5,1063.0" fill="#398260"/>
+<polyline points="1885,987 1885,960" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,960 1879.5,973.0 1890.5,973.0" fill="#398260"/>
+<polyline points="1885,1130 1885,1121" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,1121 1879.5,1134.0 1890.5,1134.0" fill="#398260"/>
+<rect x="550" y="1130" width="480" height="90" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="1168.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">E3 · (Global → Local) ×2</text>
+<text x="790.0" y="1195.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">enc_stages[3]; [2,128,1000]</text>
+<polyline points="790,1220 790,1255" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="790" cy="1235" r="4" fill="#24344B"/>
+<polyline points="790,1235 1100,1235 1100,1270 1150,1270" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1150,1270 1137.0,1264.5 1137.0,1275.5" fill="#785095"/>
+<rect x="580" y="1255" width="420" height="75" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="1285.78" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#B57626">DownConv + BN + GELU</text>
+<text x="790.0" y="1312.66" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">DWConv k=5, s=2, p=2</text>
+<polyline points="790,1330 790,1440" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="790,1440 795.5,1427.0 784.5,1427.0" fill="#24344B"/>
+<rect x="1150" y="1232" width="345" height="76" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1322.5" y="1264.24" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="700" fill="#785095">Split S3</text>
+<text x="1322.5" y="1287.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#24344B">[2,128,1000] → [4,128,1000]</text>
+<polyline points="1495,1270 1630,1270" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1630,1270 1617.0,1264.5 1617.0,1275.5" fill="#785095"/>
+<rect x="1630" y="1130" width="510" height="90" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="1168.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#398260">D0 · (Global → Local → CS) ×3</text>
+<text x="1885.0" y="1195.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">dec_stages[0]; [4,128,1000]</text>
+<rect x="1630" y="1247" width="510" height="63" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="1272.1000000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="700" fill="#398260">Concat channels → Conv1d 256 → 128</text>
+<text x="1885.0" y="1297.7" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#24344B">k=1; simple_fusion[0]</text>
+<rect x="1690" y="1333" width="390" height="48" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1885.0" y="1364.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#398260">Nearest upsample ×2</text>
+<polyline points="1885,1333 1885,1310" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,1310 1879.5,1323.0 1890.5,1323.0" fill="#398260"/>
+<polyline points="1885,1247 1885,1220" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,1220 1879.5,1233.0 1890.5,1233.0" fill="#398260"/>
+<rect x="550" y="1440" width="480" height="100" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="790.0" y="1482.96" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#B57626">bottleneck_G: (Global → Local) ×2</text>
+<text x="790.0" y="1511.1200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">No DownConv; [2,128,500]</text>
+<polyline points="1030,1490 1150,1490" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1150,1490 1137.0,1484.5 1137.0,1495.5" fill="#24344B"/>
+<rect x="1150" y="1440" width="345" height="100" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1322.5" y="1484.24" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="700" fill="#785095">Split bottleneck</text>
+<text x="1322.5" y="1507.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#24344B">[2,128,500] → [4,128,500]</text>
+<polyline points="1495,1490 1885,1490 1885,1381" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1885,1381 1879.5,1394.0 1890.5,1394.0" fill="#398260"/>
+<text x="1885" y="1545.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#398260">Decoder input X0: [4,128,500]</text>
+<polyline points="1885,350 1885,300 2610,300 2610,335" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,335 2615.5,322.0 2604.5,322.0" fill="#398260"/>
+<rect x="2380" y="335" width="460" height="62" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2610.0" y="373.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#785095">Y = [BJ,128,Tp] = [4,128,8000]</text>
+<polyline points="2610,397 2610,448" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,448 2615.5,435.0 2604.5,435.0" fill="#785095"/>
+<circle cx="2610" cy="419" r="4" fill="#24344B"/>
+<polyline points="2610,419 2935,419 2935,1480 2634,1480" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2634,1480 2647.0,1485.5 2647.0,1474.5" fill="#785095"/>
+<text x="2914" y="925.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="25" font-weight="400" fill="#785095">Y</text>
+<rect x="2390" y="448" width="440" height="118" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2610.0" y="485.88" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#785095">Bottleneck projection</text>
+<text x="2610.0" y="514.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Channel LN → Conv1d 128 → 64</text>
+<text x="2610.0" y="542.1999999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">k=1 → PReLU</text>
+<polyline points="2610,566 2610,600" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="2610" cy="600" r="4" fill="#24344B"/>
+<text x="2610" y="631.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">z: [4,64,8000]</text>
+<polyline points="2610,600 2330,600 2330,1165 2586,1165" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2586,1165 2573.0,1159.5 2573.0,1170.5" fill="#785095"/>
+<polyline points="2610,646 2470,646 2470,685" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2470,685 2475.5,672.0 2464.5,672.0" fill="#785095"/>
+<polyline points="2610,646 2750,646 2750,685" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2750,685 2755.5,672.0 2744.5,672.0" fill="#785095"/>
+<polyline points="2610,638 2610,646" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="2370" y="685" width="200" height="86" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2470.0" y="720.9599999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#785095">Conv-U (u)</text>
+<text x="2470.0" y="749.1199999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">64 → 64</text>
+<rect x="2650" y="685" width="200" height="86" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2750.0" y="720.9599999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#785095">Conv-U (v)</text>
+<text x="2750.0" y="749.1199999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">64 → 64</text>
+<text x="2610" y="809.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#69788B">Independent branch weights</text>
+<polyline points="2750,771 2750,845" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2750,845 2755.5,832.0 2744.5,832.0" fill="#785095"/>
+<rect x="2600" y="845" width="300" height="104" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2750.0" y="876.84" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#785095">Dense dilated memory</text>
+<text x="2750.0" y="903.72" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">d = [1,2,4,8]</text>
+<text x="2750.0" y="930.6" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">m: [4,64,8000]</text>
+<polyline points="2470,771 2470,1010 2586,1010" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2586,1010 2573.0,1004.5 2573.0,1015.5" fill="#785095"/>
+<polyline points="2750,949 2750,1010 2634,1010" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2634,1010 2647.0,1015.5 2647.0,1004.5" fill="#785095"/>
+<circle cx="2610" cy="1010" r="24" fill="white" stroke="#785095" stroke-width="2.3"/>
+<text x="2610" y="1019.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="30" font-weight="700" fill="#785095">×</text>
+<text x="2695" y="1055.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#785095">u × m</text>
+<polyline points="2610,1034 2610,1080" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1080 2615.5,1067.0 2604.5,1067.0" fill="#785095"/>
+<rect x="2440" y="1080" width="340" height="54" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2610.0" y="1114.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#785095">Dropout p=0.05</text>
+<polyline points="2610,1134 2610,1141" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1141 2615.5,1128.0 2604.5,1128.0" fill="#785095"/>
+<circle cx="2610" cy="1165" r="24" fill="white" stroke="#785095" stroke-width="2.3"/>
+<text x="2610" y="1174.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="30" font-weight="700" fill="#785095">+</text>
+<text x="2660" y="1194.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#785095">h = z + Dropout(u × m)</text>
+<polyline points="2610,1189 2610,1225" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1225 2615.5,1212.0 2604.5,1212.0" fill="#785095"/>
+<rect x="2390" y="1225" width="440" height="101" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2610.0" y="1255.34" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#785095">Output projection</text>
+<text x="2610.0" y="1282.22" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">Channel LN → Conv1d 64 → 128</text>
+<text x="2610.0" y="1309.1000000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#24344B">k=1; ΔY: [4,128,8000]</text>
+<polyline points="2610,1326 2610,1370" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1370 2615.5,1357.0 2604.5,1357.0" fill="#785095"/>
+<rect x="2440" y="1370" width="340" height="58" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2610.0" y="1405.72" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#785095">× α  (learnable; init 0.05)</text>
+<polyline points="2610,1428 2610,1456" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1456 2615.5,1443.0 2604.5,1443.0" fill="#785095"/>
+<circle cx="2610" cy="1480" r="24" fill="white" stroke="#785095" stroke-width="2.3"/>
+<text x="2610" y="1489.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="30" font-weight="700" fill="#785095">+</text>
+<text x="2610" y="1552.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#785095">Y′ = Y + αΔY: [4,128,8000]</text>
+<polyline points="2610,1504 2610,1520" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2610,1520 2615.5,1507.0 2604.5,1507.0" fill="#785095"/>
+<polyline points="2610,1568 2610,1590 3035,1590 3035,445 3090,445" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="3090,445 3077.0,439.5 3077.0,450.5" fill="#785095"/>
+<rect x="3090" y="335" width="470" height="220" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="3325.0" y="378.76" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#266489">Main OutputLayer</text>
+<text x="3325.0" y="408.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Crop Tp=8000 → T0=7997</text>
+<text x="3325.0" y="437.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Linear 128 → 512</text>
+<text x="3325.0" y="467.08" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">GLU: 512 → 256</text>
+<text x="3325.0" y="496.52" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Linear 256 → 256</text>
+<text x="3325.0" y="525.96" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Reshape → [J,B,256,T0]</text>
+<polyline points="3325,555 3325,578" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="3325,578 3330.5,565.0 3319.5,565.0" fill="#24344B"/>
+<text x="3325" y="605.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[2,2,256,7997]</text>
+<polyline points="3325,620 3325,660" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="3325,660 3330.5,647.0 3319.5,647.0" fill="#24344B"/>
+<rect x="3090" y="660" width="470" height="138" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="3325.0" y="692.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#266489">AudioDecoder · shared across J</text>
+<text x="3325.0" y="721.6400000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">ConvTranspose1d 256 → 1</text>
+<text x="3325.0" y="751.0800000000002" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">k=32, s=8, p=0</text>
+<text x="3325.0" y="780.5200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Crop waveform to N=64000</text>
+<polyline points="3325,798 3325,845 3185,845 3185,900" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="3185,900 3190.5,887.0 3179.5,887.0" fill="#24344B"/>
+<polyline points="3325,845 3465,845 3465,900" fill="none" stroke="#24344B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="3465,900 3470.5,887.0 3459.5,887.0" fill="#24344B"/>
+<circle cx="3325" cy="845" r="4" fill="#24344B"/>
+<rect x="3090" y="900" width="190" height="80" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="3185.0" y="932.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#266489">s1</text>
+<text x="3185.0" y="962.08" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[2,64000]</text>
+<rect x="3370" y="900" width="190" height="80" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="3465.0" y="932.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#266489">s2</text>
+<text x="3465.0" y="962.08" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[2,64000]</text>
+<text x="3325" y="1040.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#266489">Python output: list of J tensors</text>
+<text x="3325" y="1076.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#266489">Main head: masking=False</text>
+<polyline points="3100,1140 3540,1140" fill="none" stroke="#69788B" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="3325" y="1200.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489">Per-speaker decoder input:</text>
+<text x="3325" y="1229.44" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489">[B,256,T0] = [2,256,7997]</text>
+<text x="3325" y="1258.88" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489"></text>
+<text x="3325" y="1288.32" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489">Decoded length:</text>
+<text x="3325" y="1317.76" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489">(7997 − 1) × 8 + 32 = 64000</text>
+<text x="3325" y="1440.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#785095">Whole model: 14,805,191 parameters</text>
+<text x="3325" y="1468.16" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#785095">(including auxiliary heads)</text>
+<text x="3325" y="1496.32" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#785095">LTRR only: 89,031</text>
+<rect x="35" y="1650" width="500" height="455" rx="18" stroke="#266489" stroke-width="2.3" fill="#F1F7FC" stroke-dasharray="9 6"/>
+<text x="285.0" y="1692.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#266489">Notation &amp; implementation</text>
+<text x="285.0" y="1727.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#266489">Shapes are hook-verified, not estimated</text>
+<text x="65" y="1770.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">B=2 training examples; J=2 speakers</text>
+<text x="65" y="1798.16" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">BJ=4; F=128; F0=256; Cb=64</text>
+<text x="65" y="1826.32" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">T0=7997; Tp=8000; R=4</text>
+<text x="65" y="1854.48" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B"></text>
+<text x="65" y="1882.64" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Solid: main computation / residual</text>
+<text x="65" y="1910.8" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">Dashed purple: scale-matched skip</text>
+<text x="65" y="1938.96" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">× in LTRR: elementwise product</text>
+<text x="65" y="1967.12" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#24344B">No extra LTRR at D0, D1 or D2</text>
+<rect x="575" y="1650" width="2415" height="455" rx="18" stroke="#69788B" stroke-width="2.3" fill="#F6F8FA" stroke-dasharray="9 6"/>
+<text x="1782.5" y="1692.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#69788B">Auxiliary heads · return_aux=True only</text>
+<text x="1782.5" y="1727.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#69788B">Four separate OutputLayer/AudioDecoder pairs; this path does not pass through LTRR</text>
+<rect x="610" y="1785" width="530" height="160" rx="12" stroke="#69788B" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="875.0" y="1842.9199999999998" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#69788B">Xr before decoder stage Dr</text>
+<text x="875.0" y="1872.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">r=0,1,2,3</text>
+<text x="875.0" y="1901.8" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[BJ,128,500/1000/2000/4000]</text>
+<polyline points="1140,1865 1190,1865" fill="none" stroke="#69788B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1190,1865 1177.0,1859.5 1177.0,1870.5" fill="#69788B"/>
+<rect x="1190" y="1785" width="360" height="160" rx="12" stroke="#69788B" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1370.0" y="1842.9199999999998" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#69788B">Nearest interpolate</text>
+<text x="1370.0" y="1872.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">T → T0=7997</text>
+<text x="1370.0" y="1901.8" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[BJ,128,7997]</text>
+<polyline points="1550,1865 1600,1865" fill="none" stroke="#69788B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1600,1865 1587.0,1859.5 1587.0,1870.5" fill="#69788B"/>
+<rect x="1600" y="1785" width="665" height="160" rx="12" stroke="#69788B" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1932.5" y="1828.1999999999998" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#69788B">Aux OutputLayer: Linear → GLU → Linear</text>
+<text x="1932.5" y="1857.6399999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">128 → 512 → 256 → 256</text>
+<text x="1932.5" y="1887.08" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">ReLU(mask) × E (repeated; elementwise)</text>
+<text x="1932.5" y="1916.52" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">[J,B,256,7997]</text>
+<polyline points="2265,1865 2315,1865" fill="none" stroke="#69788B" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2315,1865 2302.0,1859.5 2302.0,1870.5" fill="#69788B"/>
+<rect x="2315" y="1785" width="630" height="160" rx="12" stroke="#69788B" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2630.0" y="1842.9199999999998" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#69788B">Per-head AudioDecoder → crop to N</text>
+<text x="2630.0" y="1872.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">ConvTranspose1d 256 → 1; k=32, s=8</text>
+<text x="2630.0" y="1901.8" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#24344B">Each head: list of 2 × [2,64000]</text>
+<text x="1930" y="1995.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#69788B">E = encoder_output [2,256,7997] supplies auxiliary masking; the main head uses E only to obtain T0.</text>
+<text x="1782" y="2050.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#69788B">Global = EGA → GCFN; Local = CLA → GCFN; CS = speaker attention → GCFN. All attention: 8 heads, 128 features.</text>
+<text x="1782" y="2083.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="21" font-weight="400" fill="#69788B">Shared relative-key embedding: 4000 × 16; pos_k [500,500,16]. Local CLA kernel=65. Dropout in these blocks: 0.05.</text>
+</svg>

@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3400" height="2370" viewBox="0 0 3400 2370">
+<rect width="100%" height="100%" fill="white"/>
+<title>LTRR | DenseDilatedFSMN1D, unrolled exactly as implemented</title>
+<desc>Four sequential memory states · concatenation is along channels · every state has shape [BJ,64,Tp] = [4,64,8000]</desc>
+<text x="45" y="58.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="40" font-weight="700" fill="#24344B">LTRR | DenseDilatedFSMN1D, unrolled exactly as implemented</text>
+<text x="45" y="106.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#69788B">Four sequential memory states · concatenation is along channels · every state has shape [BJ,64,Tp] = [4,64,8000]</text>
+<polyline points="45,132 3355,132" fill="none" stroke="#CBD6E1" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="1170" y="180" width="1060" height="140" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1700.0" y="225.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="26" font-weight="700" fill="#785095">Input v → ffn_in → x0</text>
+<text x="1700.0" y="258.32" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="26" font-weight="400" fill="#24344B">ChannelLayerNorm(64), ε=1e−8 → Conv1d 64 → 64, k=1 → PReLU</text>
+<text x="1700.0" y="291.6" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="26" font-weight="400" fill="#24344B">x0: [BJ,64,Tp]</text>
+<rect x="65" y="800" width="690" height="760" rx="12" stroke="#266489" stroke-width="2.3" fill="#F1F7FC" stroke-dasharray="9 6"/>
+<rect x="895" y="800" width="690" height="760" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFAF1" stroke-dasharray="9 6"/>
+<rect x="1725" y="800" width="690" height="760" rx="12" stroke="#398260" stroke-width="2.3" fill="#F2F9F4" stroke-dasharray="9 6"/>
+<rect x="2555" y="800" width="690" height="760" rx="12" stroke="#785095" stroke-width="2.3" fill="#F8F3FB" stroke-dasharray="9 6"/>
+<polyline points="1700,320 1700,385 500,385 500,470" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polyline points="500,470 2990,470" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<text x="650" y="450.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="24" font-weight="400" fill="#266489">x0 (64 channels) → all four concatenations</text>
+<circle cx="500" cy="470" r="4" fill="#266489"/>
+<polyline points="500,470 500,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="500,830 505.5,817.0 494.5,817.0" fill="#266489"/>
+<circle cx="1330" cy="470" r="4" fill="#266489"/>
+<polyline points="1330,470 1330,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1330,830 1335.5,817.0 1324.5,817.0" fill="#266489"/>
+<circle cx="2160" cy="470" r="4" fill="#266489"/>
+<polyline points="2160,470 2160,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2160,830 2165.5,817.0 2154.5,817.0" fill="#266489"/>
+<circle cx="2990" cy="470" r="4" fill="#266489"/>
+<polyline points="2990,470 2990,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2990,830 2995.5,817.0 2984.5,817.0" fill="#266489"/>
+<polyline points="410,1500 795,1500 795,530 2930,530" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<circle cx="1270" cy="530" r="4" fill="#266489"/>
+<polyline points="1270,530 1270,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="1270,830 1275.5,817.0 1264.5,817.0" fill="#266489"/>
+<circle cx="2100" cy="530" r="4" fill="#266489"/>
+<polyline points="2100,530 2100,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="2100,830 2105.5,817.0 2094.5,817.0" fill="#266489"/>
+<circle cx="2930" cy="530" r="4" fill="#266489"/>
+<polyline points="2930,530 2930,830" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="2930,830 2935.5,817.0 2924.5,817.0" fill="#266489"/>
+<text x="1305" y="515.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#266489">y1 → later stages</text>
+<polyline points="1240,1500 1625,1500 1625,600 2870,600" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<circle cx="2040" cy="600" r="4" fill="#B57626"/>
+<polyline points="2040,600 2040,830" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="2040,830 2045.5,817.0 2034.5,817.0" fill="#B57626"/>
+<circle cx="2870" cy="600" r="4" fill="#B57626"/>
+<polyline points="2870,600 2870,830" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="2870,830 2875.5,817.0 2864.5,817.0" fill="#B57626"/>
+<text x="2075" y="585.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#B57626">y2 → later stages</text>
+<polyline points="2070,1500 2455,1500 2455,670 2810,670" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<circle cx="2810" cy="670" r="4" fill="#398260"/>
+<polyline points="2810,670 2810,830" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round" stroke-dasharray="9 6"/>
+<polygon points="2810,830 2815.5,817.0 2804.5,817.0" fill="#398260"/>
+<text x="2845" y="655.0" text-anchor="start" font-family="Arial, DejaVu Sans, sans-serif" font-size="23" font-weight="400" fill="#398260">y3 → later stages</text>
+<rect x="110" y="830" width="600" height="100" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="410.0" y="871.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#266489">State y1: Concat[x0]</text>
+<text x="410.0" y="905.9200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">[BJ,64,Tp]</text>
+<polyline points="410,930 410,975" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="410,975 415.5,962.0 404.5,962.0" fill="#266489"/>
+<rect x="110" y="975" width="600" height="100" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="410.0" y="1016.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#266489">Pointwise Conv1d 64 → 64</text>
+<text x="410.0" y="1050.92" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=1, s=1, p=0; bias=True</text>
+<polyline points="410,1075 410,1120" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="410,1120 415.5,1107.0 404.5,1107.0" fill="#266489"/>
+<rect x="110" y="1120" width="600" height="120" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="410.0" y="1154.0800000000002" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#266489">Depthwise Conv1d 64 → 64</text>
+<text x="410.0" y="1188.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=3; dilation=1; padding=1</text>
+<text x="410.0" y="1223.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">groups=64; stride=1; bias=True</text>
+<polyline points="410,1240 410,1280" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="410,1280 415.5,1267.0 404.5,1267.0" fill="#266489"/>
+<rect x="180" y="1280" width="460" height="58" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="410.0" y="1318.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#266489">PReLU</text>
+<polyline points="410,1338 410,1380" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="410,1380 415.5,1367.0 404.5,1367.0" fill="#266489"/>
+<rect x="180" y="1380" width="460" height="58" rx="12" stroke="#266489" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="410.0" y="1418.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#266489">Dropout p=0.05</text>
+<polyline points="410,1438 410,1500" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="410" cy="1500" r="4" fill="#266489"/>
+<text x="392" y="1537.0" text-anchor="end" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#266489">y1</text>
+<polyline points="410,1500 410,1660" fill="none" stroke="#266489" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="940" y="830" width="600" height="100" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1240.0" y="871.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#B57626">State y2: Concat[x0, y1]</text>
+<text x="1240.0" y="905.9200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">[BJ,128,Tp]</text>
+<polyline points="1240,930 1240,975" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1240,975 1245.5,962.0 1234.5,962.0" fill="#B57626"/>
+<rect x="940" y="975" width="600" height="100" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1240.0" y="1016.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#B57626">Pointwise Conv1d 128 → 64</text>
+<text x="1240.0" y="1050.92" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=1, s=1, p=0; bias=True</text>
+<polyline points="1240,1075 1240,1120" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1240,1120 1245.5,1107.0 1234.5,1107.0" fill="#B57626"/>
+<rect x="940" y="1120" width="600" height="120" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1240.0" y="1154.0800000000002" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#B57626">Depthwise Conv1d 64 → 64</text>
+<text x="1240.0" y="1188.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=3; dilation=2; padding=2</text>
+<text x="1240.0" y="1223.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">groups=64; stride=1; bias=True</text>
+<polyline points="1240,1240 1240,1280" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1240,1280 1245.5,1267.0 1234.5,1267.0" fill="#B57626"/>
+<rect x="1010" y="1280" width="460" height="58" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1240.0" y="1318.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#B57626">PReLU</text>
+<polyline points="1240,1338 1240,1380" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1240,1380 1245.5,1367.0 1234.5,1367.0" fill="#B57626"/>
+<rect x="1010" y="1380" width="460" height="58" rx="12" stroke="#B57626" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1240.0" y="1418.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#B57626">Dropout p=0.05</text>
+<polyline points="1240,1438 1240,1500" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="1240" cy="1500" r="4" fill="#B57626"/>
+<text x="1222" y="1537.0" text-anchor="end" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#B57626">y2</text>
+<polyline points="1240,1500 1240,1660" fill="none" stroke="#B57626" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="1770" y="830" width="600" height="100" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2070.0" y="871.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#398260">State y3: Concat[x0, y1, y2]</text>
+<text x="2070.0" y="905.9200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">[BJ,192,Tp]</text>
+<polyline points="2070,930 2070,975" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2070,975 2075.5,962.0 2064.5,962.0" fill="#398260"/>
+<rect x="1770" y="975" width="600" height="100" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2070.0" y="1016.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#398260">Pointwise Conv1d 192 → 64</text>
+<text x="2070.0" y="1050.92" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=1, s=1, p=0; bias=True</text>
+<polyline points="2070,1075 2070,1120" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2070,1120 2075.5,1107.0 2064.5,1107.0" fill="#398260"/>
+<rect x="1770" y="1120" width="600" height="120" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2070.0" y="1154.0800000000002" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#398260">Depthwise Conv1d 64 → 64</text>
+<text x="2070.0" y="1188.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=3; dilation=4; padding=4</text>
+<text x="2070.0" y="1223.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">groups=64; stride=1; bias=True</text>
+<polyline points="2070,1240 2070,1280" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2070,1280 2075.5,1267.0 2064.5,1267.0" fill="#398260"/>
+<rect x="1840" y="1280" width="460" height="58" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2070.0" y="1318.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#398260">PReLU</text>
+<polyline points="2070,1338 2070,1380" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2070,1380 2075.5,1367.0 2064.5,1367.0" fill="#398260"/>
+<rect x="1840" y="1380" width="460" height="58" rx="12" stroke="#398260" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2070.0" y="1418.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#398260">Dropout p=0.05</text>
+<polyline points="2070,1438 2070,1500" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="2070" cy="1500" r="4" fill="#398260"/>
+<text x="2052" y="1537.0" text-anchor="end" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#398260">y3</text>
+<polyline points="2070,1500 2070,1660" fill="none" stroke="#398260" stroke-width="2.7" stroke-linejoin="round"/>
+<rect x="2600" y="830" width="600" height="100" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2900.0" y="871.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#785095">State y4: Concat[x0, y1, y2, y3]</text>
+<text x="2900.0" y="905.9200000000001" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">[BJ,256,Tp]</text>
+<polyline points="2900,930 2900,975" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2900,975 2905.5,962.0 2894.5,962.0" fill="#785095"/>
+<rect x="2600" y="975" width="600" height="100" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2900.0" y="1016.36" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#785095">Pointwise Conv1d 256 → 64</text>
+<text x="2900.0" y="1050.92" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=1, s=1, p=0; bias=True</text>
+<polyline points="2900,1075 2900,1120" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2900,1120 2905.5,1107.0 2894.5,1107.0" fill="#785095"/>
+<rect x="2600" y="1120" width="600" height="120" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2900.0" y="1154.0800000000002" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#785095">Depthwise Conv1d 64 → 64</text>
+<text x="2900.0" y="1188.64" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">k=3; dilation=8; padding=8</text>
+<text x="2900.0" y="1223.2" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#24344B">groups=64; stride=1; bias=True</text>
+<polyline points="2900,1240 2900,1280" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2900,1280 2905.5,1267.0 2894.5,1267.0" fill="#785095"/>
+<rect x="2670" y="1280" width="460" height="58" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2900.0" y="1318.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#785095">PReLU</text>
+<polyline points="2900,1338 2900,1380" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="2900,1380 2905.5,1367.0 2894.5,1367.0" fill="#785095"/>
+<rect x="2670" y="1380" width="460" height="58" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="2900.0" y="1418.28" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="29" font-weight="700" fill="#785095">Dropout p=0.05</text>
+<polyline points="2900,1438 2900,1500" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="2900" cy="1500" r="4" fill="#785095"/>
+<text x="2882" y="1537.0" text-anchor="end" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#785095">y4</text>
+<polyline points="2900,1500 2900,1660" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polyline points="410,1660 2900,1660" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<circle cx="410" cy="1660" r="4" fill="#785095"/>
+<circle cx="1240" cy="1660" r="4" fill="#785095"/>
+<circle cx="2070" cy="1660" r="4" fill="#785095"/>
+<circle cx="2900" cy="1660" r="4" fill="#785095"/>
+<circle cx="1700" cy="1660" r="4" fill="#785095"/>
+<polyline points="1700,1660 1700,1760" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1700,1760 1705.5,1747.0 1694.5,1747.0" fill="#785095"/>
+<rect x="1170" y="1760" width="1060" height="120" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1700.0" y="1811.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="700" fill="#785095">Concat[y1, y2, y3, y4]</text>
+<text x="1700.0" y="1846.8799999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#24344B">[BJ,256,Tp] · x0 is NOT included in this final concatenation</text>
+<polyline points="1700,1880 1700,1940" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1700,1940 1705.5,1927.0 1694.5,1927.0" fill="#785095"/>
+<rect x="1170" y="1940" width="1060" height="110" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1700.0" y="1986.04" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="700" fill="#785095">out_proj: Conv1d 256 → 64</text>
+<text x="1700.0" y="2021.8799999999999" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#24344B">k=1, s=1, p=0; bias=True</text>
+<polyline points="1700,2050 1700,2110" fill="none" stroke="#785095" stroke-width="2.7" stroke-linejoin="round"/>
+<polygon points="1700,2110 1705.5,2097.0 1694.5,2097.0" fill="#785095"/>
+<rect x="1290" y="2110" width="820" height="70" rx="12" stroke="#785095" stroke-width="2.3" fill="#FFFFFF"/>
+<text x="1700.0" y="2154.6" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="30" font-weight="700" fill="#785095">m: [BJ,64,Tp] = [4,64,8000]</text>
+<text x="1700" y="2255.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="24" font-weight="400" fill="#24344B">Solid top bus: x0. Dashed feedback buses: earlier states to later stages. Dots denote junctions; crossings without dots do not connect.</text>
+<text x="1700" y="2305.0" text-anchor="middle" font-family="Arial, DejaVu Sans, sans-serif" font-size="24" font-weight="400" fill="#24344B">All arrows follow the acyclic forward computation. The returned memory m is multiplied by u in TemporalInteraction; it is not added to v here.</text>
+</svg>
