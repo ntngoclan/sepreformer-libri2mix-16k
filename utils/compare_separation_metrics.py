@@ -148,7 +148,7 @@ def _write_markdown(result, output_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline", required=True, help="Baseline metrics_per_utterance.csv")
-    parser.add_argument("--candidate", required=True, help="PARR metrics_per_utterance.csv")
+    parser.add_argument("--candidate", required=True, help="Candidate metrics_per_utterance.csv (e.g. LTRR)")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--bootstrap-samples", type=int, default=10000)
     parser.add_argument("--confidence", type=float, default=0.95)

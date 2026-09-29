@@ -1,4 +1,5 @@
 import io
+import os
 import random
 import zipfile
 from pathlib import Path, PurePosixPath
@@ -93,6 +94,7 @@ class VnSpeechMixDataset(Dataset):
         self.archive_path = _project_path(config["archive"])
         self.archive_root = PurePosixPath(config.get("archive_root", "VN-SpeechMix/wav16k/min"))
         self._zip = None
+        self._zip_pid = None
 
         extracted_partition = self.extracted_root / self.partition_dir
         required_dirs = (self.mixture_dir,) + self.source_dirs
@@ -133,6 +135,8 @@ class VnSpeechMixDataset(Dataset):
         source_prefixes = tuple(f"{partition_root / name}/" for name in self.source_dirs)
 
         with zipfile.ZipFile(self.archive_path) as archive:
+            if len(archive.namelist()) != len(set(archive.namelist())):
+                raise ValueError("Duplicate ZIP member names are ambiguous.")
             members = {
                 info.filename
                 for info in archive.infolist()
@@ -159,11 +163,17 @@ class VnSpeechMixDataset(Dataset):
         # ZipFile handles cannot be sent to DataLoader worker processes.
         state = self.__dict__.copy()
         state["_zip"] = None
+        state["_zip_pid"] = None
         return state
 
     def _get_zip(self):
-        if self._zip is None:
+        # fork inherits the parent's file descriptor/seek position. Each worker
+        # must reopen it, including when an audit has already read the dataset.
+        if self._zip is None or self._zip_pid != os.getpid():
+            if self._zip is not None:
+                self._zip.close()
             self._zip = zipfile.ZipFile(self.archive_path)
+            self._zip_pid = os.getpid()
         return self._zip
 
     def _load_audio(self, reference):

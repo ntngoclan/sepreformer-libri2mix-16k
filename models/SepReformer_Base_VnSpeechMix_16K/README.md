@@ -1,5 +1,8 @@
 # SepReformer-B on VN-SpeechMix (16 kHz)
 
+Complete baseline/LTRR preparation, checks, comparison and packaging:
+[Vietnamese runbook](../../docs/VNSPEECHMIX_BASELINE_LTRR_CHECKLIST_VI.md).
+
 The default config uses [common 16 kHz protocol v2](../../docs/COMMON_16K_PROTOCOL.md).
 Start fresh runs with its absolute plateau threshold and new initialization directory;
 previous pilot/checkpoint configs are not interchangeable with this revision.

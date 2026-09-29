@@ -1,5 +1,8 @@
 # SepReformer-LTRR on VN-SpeechMix, 16 kHz
 
+Complete baseline/LTRR preparation, checks, comparison and packaging:
+[Vietnamese runbook](../../docs/VNSPEECHMIX_BASELINE_LTRR_CHECKLIST_VI.md).
+
 The default config now follows [shared protocol v2](../../docs/COMMON_16K_PROTOCOL.md)
 with the Libri2Mix experiments. The absolute plateau threshold and new initialization
 directory require fresh official runs for both baseline and LTRR.

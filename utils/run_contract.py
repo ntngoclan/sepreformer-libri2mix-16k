@@ -29,7 +29,8 @@ def make_run_contract(model, config):
         'utils/paired_initialization.py', 'utils/run_contract.py',
         'utils/run_management.py', 'utils/parr_diagnostics.py',
         'utils/util_implement.py', 'utils/functions.py', 'utils/evaluation_metrics.py',
-        'utils/decorators.py', 'utils/implements/optimizers.py')]
+        'utils/decorators.py', 'utils/implements/optimizers.py',
+        'utils/runtime_dependencies.py')]
     source_files += [root / 'utils/implements/criterions.py',
                     root / 'utils/implements/schedulers.py', root / 'utils/runtime_state.py']
     if module_path.is_file():

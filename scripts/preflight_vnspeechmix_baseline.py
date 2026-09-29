@@ -27,23 +27,11 @@ def main():
     p.add_argument('--steps', type=int, default=2)
     p.add_argument('--workers', type=int, default=0)
     p.add_argument('--full-audio', action='store_true')
+    p.add_argument('--skip-pesq', action='store_true', help='Partial check only; does not certify full evaluation')
     p.add_argument('--report', required=True)
     args = p.parse_args()
     root = Path(args.root).resolve()
     sys.path.insert(0, str(root))
-    import numpy as np
-    import soundfile as sf
-    import torch
-    import yaml
-    from loguru import logger
-    logger.remove()
-    import importlib
-    dataset_module = importlib.import_module(f'models.{args.model}.dataset')
-    VnSpeechMixDataset = getattr(dataset_module, 'VnSpeechMixDataset', None) or dataset_module.Libri2MixDataset
-    _collate, _seed_worker = dataset_module._collate, dataset_module._seed_worker
-    Model = importlib.import_module(f'models.{args.model}.model').Model
-    from utils.util_implement import CriterionFactory, OptimizerFactory, SchedulerFactory
-    from utils.util_system import set_random_seed
     report_path = Path(args.report)
     if not report_path.is_absolute():
         report_path = root / report_path
@@ -51,8 +39,24 @@ def main():
     report = {'status': 'running', 'checks': {}, 'limitations': []}
     started = time.time()
     try:
+        import numpy as np
+        import torch
+        import yaml
+        from loguru import logger
+        logger.remove()
+        import importlib
+        dataset_module = importlib.import_module(f'models.{args.model}.dataset')
+        VnSpeechMixDataset = getattr(dataset_module, 'VnSpeechMixDataset', None) or dataset_module.Libri2MixDataset
+        _collate, _seed_worker = dataset_module._collate, dataset_module._seed_worker
+        Model = importlib.import_module(f'models.{args.model}.model').Model
+        from utils.util_implement import CriterionFactory, OptimizerFactory, SchedulerFactory
+        from utils.util_system import set_random_seed
         config_path = root / args.config if args.config else root/'models'/args.model/'configs.yaml'
         cfg = yaml.safe_load(config_path.read_text())['config']
+        if args.skip_pesq:
+            cfg['evaluation']['compute_pesq'] = False
+        from utils.runtime_dependencies import check_dependencies
+        report['packages'] = check_dependencies(cfg)
         set_random_seed(**cfg['experiment'])
         torch.set_num_threads(4)
         device = torch.device(args.device)
@@ -103,6 +107,8 @@ def main():
                 error = float(np.max(np.abs(arrays[0]-arrays[1]-arrays[2])))
                 assert error <= 2/32768, (mixpath, error)
                 worst = max(worst, error)
+                if args.full_audio and (i + 1) % 1000 == 0:
+                    print(split, i + 1, '/', len(ds), 'mixtures checked', flush=True)
             first, second = ds[0], ds[0]
             if split != 'train':
                 assert np.array_equal(first['mix'], second['mix']), 'Unstable validation/test crop'
@@ -164,19 +170,14 @@ def main():
             'name':args.model,
             'device':str(device),'samples':args.samples,'batch_size':cfg['dataloader']['batch_size'],
             'steps':args.steps,'losses':losses,'checkpoint_roundtrip':'passed','workers':args.workers}
-        from importlib.metadata import version, PackageNotFoundError
-        packages = {}
-        for name in ['torch','soundfile','pesq','pystoi','mir-eval','tensorboard']:
-            try: packages[name] = version(name)
-            except PackageNotFoundError: packages[name] = None
-        report['packages'] = packages
         report['disk_free_bytes'] = shutil.disk_usage(root).free
-        report['status'] = 'smoke_passed'
+        report['status'] = 'partial_smoke_passed' if args.skip_pesq else 'smoke_passed'
         report['limitations'] = ['Not a full epoch or production engine end-to-end check.',
             'Does not establish convergence or optimal hyperparameters.',
             'Audio audit sampled unless --full-audio; no all-file content hash.',
             'Checkpoint test checks serialization and restored outputs, not resumed next-update equality.']
         if args.device == 'cpu': report['limitations'].append('CUDA and GPU memory not tested.')
+        if args.skip_pesq: report['limitations'].append('PESQ explicitly disabled; full evaluation readiness not established.')
         if args.samples != cfg['dataset']['max_len']: report['limitations'].append('Training crop shortened for smoke test.')
     except Exception as e:
         report['status'] = 'failed'

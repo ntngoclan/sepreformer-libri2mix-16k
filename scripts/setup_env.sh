@@ -18,6 +18,7 @@ python -m pip install \
   "torch==${TORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" "torchaudio==${TORCHAUDIO_VERSION}" \
   --index-url "${TORCH_INDEX_URL}"
 python -m pip install -r requirements-runtime.txt
+python -m pip check
 
 echo "Environment installed at ${VENV_DIR}"
 echo "Next: source ${VENV_DIR}/bin/activate && python scripts/preflight.py"

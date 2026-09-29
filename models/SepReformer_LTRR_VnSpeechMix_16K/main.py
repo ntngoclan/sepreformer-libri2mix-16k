@@ -7,6 +7,7 @@ from utils import util_implement, util_system
 from utils.decorators import logger_wraps
 from .modules.pairing import apply_paired_initialization
 from utils.run_management import prepare_run, record_provenance
+from utils.runtime_dependencies import check_dependencies
 
 from .dataset import get_dataloaders
 from .engine import Engine
@@ -20,6 +21,9 @@ MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 @logger_wraps()
 def main(args):
     config = util_system.parse_yaml(getattr(args, 'config', None) or os.path.join(MODEL_DIR, "configs.yaml"))["config"]
+    check_dependencies(config)
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for SepReformer training and evaluation.")
     run_dir = prepare_run(args, config)
     sink = logger.add(str(run_dir / 'logs/system.log'), level='DEBUG')
     try:

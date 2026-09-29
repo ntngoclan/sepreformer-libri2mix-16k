@@ -13,7 +13,7 @@ import zipfile
 from pathlib import Path
 
 
-def audit(path):
+def audit(path, dataset='libri2mix'):
     started = time.perf_counter()
     report = {"archive": str(Path(path).resolve()), "partitions": {}}
     with zipfile.ZipFile(path) as archive:
@@ -21,12 +21,20 @@ def audit(path):
         if len(set(names)) != len(names):
             raise ValueError("Duplicate ZIP member names are ambiguous.")
         members = set(names)
-        for partition, expected in (("train-100", 13900), ("dev", 3000), ("test", 3000)):
-            root = f"Libri2Mix/wav16k/min/{partition}"
+        partitions = (("train", 18000), ("valid", 3000), ("test", 5000)) if dataset == 'vnspeechmix' else (("train-100", 13900), ("dev", 3000), ("test", 3000))
+        for partition, expected in partitions:
+            root = f"rendered/{partition}" if dataset == 'vnspeechmix' else f"Libri2Mix/wav16k/min/{partition}"
             prefix = f"{root}/mix_clean/"
             mixtures = sorted(name for name in members if name.startswith(prefix) and name.endswith(".wav"))
             if len(mixtures) != expected:
                 raise ValueError(f"{partition}: expected {expected}, got {len(mixtures)} mixtures")
+            keys = {name[len(prefix):] for name in mixtures}
+            for folder in ('s1', 's2'):
+                source_prefix = f'{root}/{folder}/'
+                source_keys = {name[len(source_prefix):] for name in members
+                               if name.startswith(source_prefix) and name.endswith('.wav')}
+                if source_keys != keys:
+                    raise ValueError(f'{partition}/{folder}: source/mixture file sets differ')
             total_frames = 0
             widths = set()
             for index, mixture in enumerate(mixtures):
@@ -63,5 +71,12 @@ def audit(path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", default="data/Libri2Mix.zip")
+    parser.add_argument('--dataset', choices=['libri2mix', 'vnspeechmix'], default='libri2mix')
+    parser.add_argument('--report', help='Write a JSON report in addition to progress output')
     args = parser.parse_args()
-    print(json.dumps(audit(args.archive), indent=2))
+    result = audit(args.archive, args.dataset)
+    if args.report:
+        target = Path(args.report)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, indent=2), encoding='utf-8')
+    print(json.dumps(result, indent=2))

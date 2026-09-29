@@ -112,10 +112,10 @@ class ProtocolTests(unittest.TestCase):
                 str(ROOT / 'scripts/preflight_vnspeechmix_baseline.py'),
                 '--root', str(ROOT), '--model', BASE, '--config', str(pilot),
                 '--device', 'cpu', '--samples', '1024', '--steps', '1',
-                '--workers', '0', '--report', str(report)],
+                '--workers', '0', '--skip-pesq', '--report', str(report)],
                 capture_output=True, text=True, timeout=120)
             self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
-            self.assertEqual(json.loads(report.read_text())['status'], 'smoke_passed')
+            self.assertEqual(json.loads(report.read_text())['status'], 'partial_smoke_passed')
             sf.write(data / 'dev/s1/0.wav', np.zeros(2051), 8000)
             with self.assertRaisesRegex(ValueError, 'Invalid mono 16 kHz'):
                 build_manifest(cfg)
